@@ -6,13 +6,13 @@ import os
 class SpatialHandler:
     def __init__(self, boundary_path):
         """Khởi tạo với file ranh giới chuẩn BatXat(moi)1.shp"""
-        # file có tồn tại không
+        
         if not os.path.exists(boundary_path):
             raise FileNotFoundError(f"Không tìm thấy file shapefile tại: {boundary_path}")
             
         self.boundary_gdf = gpd.read_file(boundary_path)
         
-        # Luôn đảm bảo ranh giới ở hệ tọa độ chuẩn WGS84 (EPSG:4326) để gọi API
+        
         if self.boundary_gdf.crs != "EPSG:4326":
             self.boundary_gdf = self.boundary_gdf.to_crs("EPSG:4326")
         
@@ -24,14 +24,12 @@ class SpatialHandler:
     def clip_raster(self, input_path, output_path):
         """Cắt ảnh vệ tinh hoặc DEM theo hình dạng huyện Bát Xát"""
         with rasterio.open(input_path) as src:
-            # Chuyển ranh giới về cùng hệ tọa độ với file ảnh để cắt chính xác
+        
             boundary_projected = self.boundary_gdf.to_crs(src.crs)
-            
-            # Thực hiện phép cắt (Masking)
+
             out_image, out_transform = mask(src, boundary_projected.geometry, crop=True)
             out_meta = src.meta.copy()
 
-        # Cập nhật thông tin file sau khi cắt
         out_meta.update({
             "driver": "GTiff",
             "height": out_image.shape[1],
