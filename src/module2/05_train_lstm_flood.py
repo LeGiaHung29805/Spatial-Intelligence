@@ -8,12 +8,12 @@ import joblib
 import os
 
 def train_flood_model_seasonal():
-    print("🌊 ĐANG HUẤN LUYỆN LSTM: NHẬN DIỆN MÙA & ĐỊA HÌNH BÁT XÁT...")
+    print("ĐANG HUẤN LUYỆN LSTM: NHẬN DIỆN MÙA & ĐỊA HÌNH BÁT XÁT...")
     MODELS_DIR = os.path.join("models")
     # 1. Đọc dữ liệu
     file_path = os.path.join(MODELS_DIR, "flood_training_data_lstm.csv")
     if not os.path.exists(file_path):
-        print("❌ Không tìm thấy file CSV. Hãy chạy file 04 trước!")
+        print("Không tìm thấy file CSV. Hãy chạy file 04 trước!")
         return
         
     df = pd.read_csv(file_path)
@@ -64,7 +64,7 @@ def train_flood_model_seasonal():
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     # 6. Huấn luyện
-    print(f"🚀 Huấn luyện AI với đầu vào: {X.shape}")
+    print(f"Huấn luyện AI với đầu vào: {X.shape}")
     model.fit(X, y, epochs=30, batch_size=16, validation_split=0.1, verbose=1)
 
     # 7. Lưu kết quả
@@ -75,7 +75,7 @@ def train_flood_model_seasonal():
     
     # Lưu Scaler đã "học" đủ 7 cột
     joblib.dump(scaler, os.path.join(MODELS_DIR, "flood_scaler.pkl"))
-    print("✅ Đã lưu Model và Scaler đồng bộ!")
+    print("Đã lưu Model và Scaler đồng bộ!")
 
 if __name__ == "__main__":
     train_flood_model_seasonal()

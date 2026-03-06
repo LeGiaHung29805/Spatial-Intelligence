@@ -14,7 +14,7 @@ def create_fused_dataset():
     output_csv = "data/processed/landslide_training_data.csv"
 
     if not os.path.exists(slope_path) or not os.path.exists(dem_path):
-        print(f"❌ Lỗi: Không tìm thấy file tại thư mục raw! Hãy kiểm tra lại đường dẫn.")
+        print(f"Lỗi: Không tìm thấy file tại thư mục raw! Hãy kiểm tra lại đường dẫn.")
         return
 
     # 2. ĐỌC MA TRẬN ĐỘ DỐC VÀ TÌM ĐIỂM THEO ĐIỀU KIỆN
@@ -62,7 +62,7 @@ def create_fused_dataset():
             slope_vals.append(slope_array[r, c])
 
     # 3. XUYÊN THỦNG LỚP CAO ĐỘ (DEM) TẠI CÁC ĐIỂM VỪA TÌM ĐƯỢC
-    print(f"📍 Đang 'khoan' xuyên lớp Cao trình (Elevation) tại {len(points)} điểm này...")
+    print(f"Đang 'khoan' xuyên lớp Cao trình (Elevation) tại {len(points)} điểm này...")
     with rasterio.open(dem_path) as src_dem:
         dem_vals = [val[0] for val in src_dem.sample(points)]
 
@@ -79,7 +79,7 @@ def create_fused_dataset():
     df = df[df['Elevation'] > 0].copy()
 
     # 5. CHUẨN HÓA DỮ LIỆU (Normalization) về thang [0, 1]
-    print("⚖️ Đang chuẩn hóa (MinMaxScaler) các biến số về thang đo [0, 1]...")
+    print("Đang chuẩn hóa (MinMaxScaler) các biến số về thang đo [0, 1]...")
     scaler = MinMaxScaler()
     df[['Elevation_Norm', 'Slope_Norm']] = scaler.fit_transform(df[['Elevation', 'Slope']])
 
@@ -89,13 +89,13 @@ def create_fused_dataset():
     # 6. XUẤT FILE CHO MÔ HÌNH RANDOM FOREST
     df.to_csv(output_csv, index=False)
     
-    print(f"\n✅ HOÀN THÀNH! Tập dữ liệu đã được tối ưu hóa và cân bằng hoàn hảo.")
-    print(f"📊 Thống kê Label trong file {output_csv}:")
+    print(f"\nHOÀN THÀNH! Tập dữ liệu đã được tối ưu hóa và cân bằng hoàn hảo.")
+    print(f"Thống kê Label trong file {output_csv}:")
     print(df['Landslide_Label'].value_counts().rename(index={0: "An toàn (0)", 1: "Sạt lở (1)"}))
     
-    print("\n👁️ Xem thử 3 dòng MẪU AN TOÀN (< 15 độ):")
+    print("\nXem thử 3 dòng MẪU AN TOÀN (< 15 độ):")
     print(df[df['Landslide_Label'] == 0][['Slope', 'Slope_Norm', 'Landslide_Label']].head(3))
-    print("\n👁️ Xem thử 3 dòng MẪU NGUY HIỂM (> 30 độ):")
+    print("\nXem thử 3 dòng MẪU NGUY HIỂM (> 30 độ):")
     print(df[df['Landslide_Label'] == 1][['Slope', 'Slope_Norm', 'Landslide_Label']].head(3))
 
 if __name__ == "__main__":
