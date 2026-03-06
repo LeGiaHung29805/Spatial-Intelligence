@@ -10,28 +10,28 @@ def overlay_dem():
     
     # KIỂM TRA: File đầu vào có tồn tại không?
     if not os.path.exists(input_path):
-        print(f"❌ Không tìm thấy file nhà đã làm sạch tại: {input_path}")
+        print(f"Không tìm thấy file nhà đã làm sạch tại: {input_path}")
         return
     if not os.path.exists(dem_path):
-        print(f"❌ Không tìm thấy file DEM tại: {dem_path}")
+        print(f"Không tìm thấy file DEM tại: {dem_path}")
         return
 
-    print("🚀 Đang nạp dữ liệu không gian cho huyện Bát Xát...")
+    print("Đang nạp dữ liệu không gian cho huyện Bát Xát...")
     buildings = gpd.read_file(input_path)
     
     # 2. Mở file ảnh DEM
     with rasterio.open(dem_path) as dem:
         # 3. Đồng bộ hệ tọa độ (CRS)
         if buildings.crs != dem.crs:
-            print(f"🔄 Đang chuyển hệ tọa độ về khớp với DEM ({dem.crs})...")
+            print(f"Đang chuyển hệ tọa độ về khớp với DEM ({dem.crs})...")
             buildings = buildings.to_crs(dem.crs)
             
         # 4. Lấy tọa độ tâm nhà (Centroid)
-        print("📍 Đang tính toán vị trí trung tâm của các mái nhà...")
+        print("Đang tính toán vị trí trung tâm của các mái nhà...")
         coords = [(geom.centroid.x, geom.centroid.y) for geom in buildings.geometry]
         
         # 5. Trích xuất độ cao (Sample)
-        print(f"🏔️ Đang trích xuất cao trình cho {len(buildings)} công trình...")
+        print(f"Đang trích xuất cao trình cho {len(buildings)} công trình...")
         
         # Chúng ta dùng danh sách tạm để theo dõi tiến độ cho đỡ sốt ruột
         elevations = []
@@ -44,7 +44,7 @@ def overlay_dem():
     
     # 6. Lưu file kết quả
     buildings.to_file(output_path, driver='GeoJSON')
-    print(f"✅ Hoàn thành! Kết quả đã được lưu tại: {output_path}")
+    print(f"Hoàn thành! Kết quả đã được lưu tại: {output_path}")
 
 # --- QUAN TRỌNG: Lệnh gọi hàm để thực thi code ---
 if __name__ == "__main__":

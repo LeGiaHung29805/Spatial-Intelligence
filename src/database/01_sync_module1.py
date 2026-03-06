@@ -13,19 +13,19 @@ def sync_normalized_db():
     # CHỈ ĐỊNH RÕ 3 KỊCH BẢN CỦA BẠN (Không dùng *m tự động nữa)
     scenarios = [85, 90, 95]
     
-    print(f"🎯 Bắt đầu tiến trình ETL cho 3 kịch bản: {scenarios}...\n")
+    print(f"Bắt đầu tiến trình ETL cho 3 kịch bản: {scenarios}...\n")
 
     # 1. XÓA DỮ LIỆU CŨ ĐỂ CHẠY LẠI AN TOÀN
     with engine.connect() as conn:
         conn.execute(text("TRUNCATE TABLE flood_impacts, batxat_buildings RESTART IDENTITY CASCADE;"))
         conn.commit()
-        print("🧹 Đã làm sạch cơ sở dữ liệu cũ.")
+        print("Đã làm sạch cơ sở dữ liệu cũ.")
 
     # 2. NẠP DỮ LIỆU TĨNH (Lấy file 85m làm gốc để trích xuất tọa độ nhà)
     base_level = scenarios[0]
     base_file = os.path.join(processed_dir, f"final_analysis_{base_level}m.geojson")
     
-    print(f"🏗️ Đang trích xuất thông tin tòa nhà gốc từ file {base_level}m...")
+    print(f"Đang trích xuất thông tin tòa nhà gốc từ file {base_level}m...")
     gdf_base = gpd.read_file(base_file)
     
     # Cấp ID cho từng nhà
@@ -42,12 +42,12 @@ def sync_normalized_db():
     
     # 3. Bây giờ thì đẩy lên PostGIS thoải mái
     gdf_static.to_postgis('batxat_buildings', engine, if_exists='append', index=False)
-    print(f"   ✅ Đã nạp {len(gdf_static)} công trình vào bảng batxat_buildings.\n")
+    print(f" Đã nạp {len(gdf_static)} công trình vào bảng batxat_buildings.\n")
 
     # 3. NẠP DỮ LIỆU ĐỘNG CHO CHÍNH XÁC 3 KỊCH BẢN
     for level in scenarios:
         file_path = os.path.join(processed_dir, f"final_analysis_{level}m.geojson")
-        print(f"🌊 Đang nạp kịch bản lũ: {level}m...")
+        print(f"Đang nạp kịch bản lũ: {level}m...")
         
         gdf_scenario = gpd.read_file(file_path)
         
@@ -64,7 +64,7 @@ def sync_normalized_db():
         df_dynamic = pd.DataFrame(gdf_scenario[dynamic_cols])
         
         df_dynamic.to_sql('flood_impacts', engine, if_exists='append', index=False)
-        print(f"   ✅ Xong kịch bản {level}m!")
+        print(f"Xong kịch bản {level}m!")
 
     print("\n✨ THÀNH CÔNG! Dữ liệu đã vào CSDL chuẩn.")
 

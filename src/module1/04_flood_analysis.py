@@ -2,7 +2,7 @@ import geopandas as gpd
 import pandas as pd
 
 def analyze_risk(input_path, output_path, flood_level):
-    print(f"🌊 ĐANG PHÂN TÍCH KỊCH BẢN LŨ MỨC: {flood_level}m")
+    print(f"ĐANG PHÂN TÍCH KỊCH BẢN LŨ MỨC: {flood_level}m")
     
     # Đọc dữ liệu
     buildings = gpd.read_file(input_path)
@@ -32,7 +32,7 @@ def analyze_risk(input_path, output_path, flood_level):
 
     # 3. Thống kê số lượng
     summary = buildings['risk_status'].value_counts()
-    print("📊 THỐNG KÊ RỦI RO CHO BÁT XÁT:")
+    print("THỐNG KÊ RỦI RO CHO BÁT XÁT:")
     print(summary)
 
     # 4. Tính tổng diện tích mái nhà bị ảnh hưởng
@@ -40,11 +40,11 @@ def analyze_risk(input_path, output_path, flood_level):
     at_risk_buildings = buildings[buildings['flood_depth'] > 0]
     if 'area_in_meters' in buildings.columns:
         at_risk_area = at_risk_buildings['area_in_meters'].sum()
-        print(f"🏠 Tổng diện tích mái nhà bị ngập: {at_risk_area:,.2f} m²")
+        print(f"Tổng diện tích mái nhà bị ngập: {at_risk_area:,.2f} m²")
 
     # 5. Lưu file để hiển thị Web GIS
     buildings.to_file(output_path, driver='GeoJSON')
-    print(f"✅ Đã xuất file: {output_path}\n")
+    print(f"Đã xuất file: {output_path}\n")
 
 if __name__ == "__main__":
     input_file = "data/processed/buildings_with_z.geojson"
