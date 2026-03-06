@@ -1,0 +1,8 @@
+# Ẩn môi trường ảo
+.venv/
+venv/
+env/
+# Ẩn các file rác phát sinh khi chạy Python
+__pycache__/
+__init__.py
+tempCodeRunnerFile.py
