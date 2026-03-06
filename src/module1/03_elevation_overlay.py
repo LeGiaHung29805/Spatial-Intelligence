@@ -1,29 +1,51 @@
 import geopandas as gpd
-import rasterio # Thư viện chuyên dùng để đọc file ảnh vệ tinh/DEM (Raster)
+import rasterio
+import os
 
 def overlay_dem():
-    # 1. Nạp dữ liệu nhà đã sạch và file ảnh DEM 12.5m
-    buildings = gpd.read_file("data/processed/buildings_cleaned.geojson")
-    dem_path = "data/raw/dem/bat_xat_12.5m.tif"
+    # 1. Cấu hình đường dẫn (Đảm bảo tên file DEM khớp với file bạn đã tải)
+    input_path = "data/processed/buildings_cleaned.geojson"
+    dem_path = "data/raw/dem/Copernicus_DEM_BatXat_30m.tif"
+    output_path = "data/processed/buildings_with_z.geojson"
     
-    # 2. Mở file ảnh DEM bằng rasterio
+    # KIỂM TRA: File đầu vào có tồn tại không?
+    if not os.path.exists(input_path):
+        print(f"❌ Không tìm thấy file nhà đã làm sạch tại: {input_path}")
+        return
+    if not os.path.exists(dem_path):
+        print(f"❌ Không tìm thấy file DEM tại: {dem_path}")
+        return
+
+    print("🚀 Đang nạp dữ liệu không gian cho huyện Bát Xát...")
+    buildings = gpd.read_file(input_path)
+    
+    # 2. Mở file ảnh DEM
     with rasterio.open(dem_path) as dem:
-        # 3. KIỂM TRA HỆ TỌA ĐỘ (CRS): 
-        # Nếu nhà dùng độ (WGS84) mà DEM dùng mét (UTM), chúng sẽ bị lệch.
-        # Dòng này ép chúng phải khớp nhau hoàn toàn.
+        # 3. Đồng bộ hệ tọa độ (CRS)
         if buildings.crs != dem.crs:
+            print(f"🔄 Đang chuyển hệ tọa độ về khớp với DEM ({dem.crs})...")
             buildings = buildings.to_crs(dem.crs)
             
-        # 4. TÍNH TÂM NHÀ (Centroid):
-        # Vì ngôi nhà là một đa giác, chúng ta lấy điểm chính giữa mái nhà 
-        # để "chọc" xuống bản đồ cao độ lấy giá trị Z.
+        # 4. Lấy tọa độ tâm nhà (Centroid)
+        print("📍 Đang tính toán vị trí trung tâm của các mái nhà...")
         coords = [(geom.centroid.x, geom.centroid.y) for geom in buildings.geometry]
         
-        # 5. TRÍCH XUẤT ĐỘ CAO (Sample):
-        # dem.sample(coords) sẽ nhìn vào từng pixel tại đúng vị trí tâm nhà
-        # và lấy ra con số độ cao (ví dụ: 150.5m) gán vào cột 'elevation_z'.
-        buildings['elevation_z'] = [val[0] for val in dem.sample(coords)]
+        # 5. Trích xuất độ cao (Sample)
+        print(f"🏔️ Đang trích xuất cao trình cho {len(buildings)} công trình...")
+        
+        # Chúng ta dùng danh sách tạm để theo dõi tiến độ cho đỡ sốt ruột
+        elevations = []
+        for i, val in enumerate(dem.sample(coords)):
+            elevations.append(val[0])
+            if i % 1000 == 0 and i > 0:
+                print(f"   > Đã xử lý {i} ngôi nhà...")
+        
+        buildings['elevation_z'] = elevations
     
-    # 6. Lưu file kết quả cuối cùng
-    buildings.to_file("data/processed/buildings_with_z.geojson", driver='GeoJSON')
-    print("✅ Đã gán cao trình thành công.")
+    # 6. Lưu file kết quả
+    buildings.to_file(output_path, driver='GeoJSON')
+    print(f"✅ Hoàn thành! Kết quả đã được lưu tại: {output_path}")
+
+# --- QUAN TRỌNG: Lệnh gọi hàm để thực thi code ---
+if __name__ == "__main__":
+    overlay_dem()

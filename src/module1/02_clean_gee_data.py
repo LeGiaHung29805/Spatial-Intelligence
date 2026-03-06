@@ -1,21 +1,48 @@
-import geopandas as gpd # Thư viện để xử lý dữ liệu bản đồ dạng Vector (mái nhà)
+import geopandas as gpd
+import os
 
 def clean_data():
-    # 1. Khai báo đường dẫn file thô từ GEE và file kết quả
+    # 1. Khai báo đường dẫn
     raw_gee_path = "data/shapefiles/infrastructure/BatXat_Buildings_GEE_Fixed.shp"
-    output_path = "data/processed/buildings_cleaned.geojson"
+    output_dir = "data/processed"
+    output_path = os.path.join(output_dir, "buildings_cleaned.geojson")
     
-    # 2. Đọc file Shapefile vào bộ nhớ máy tính dưới dạng bảng (DataFrame)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"📁 Đã tạo thư mục: {output_dir}")
+
+    print("🚀 Đang bắt đầu làm sạch dữ liệu...")
+
+    if not os.path.exists(raw_gee_path):
+        print(f"❌ Lỗi: Không tìm thấy file tại {raw_gee_path}")
+        return
+
+    # 2. Đọc file
     gdf = gpd.read_file(raw_gee_path)
+    print(f"🔍 Cột gốc từ GEE: {gdf.columns.tolist()}")
+
+    # 3. Xử lý đổi tên cột bị cắt ngắn (Mapping)
+    # Chúng ta tạo một "từ điển" để đổi 'area_in_me' về lại 'area_in_meters'
+    name_map = {
+        'area_in_me': 'area_in_meters',
+        'AREA_IN_ME': 'area_in_meters' # Đề phòng trường hợp GEE viết hoa
+    }
     
-    # 3. LỌC CỘT: Đây là dòng quan trọng nhất. 
-    # SHP từ GEE có rất nhiều cột hệ thống. Chúng ta chỉ giữ lại:
-    # - 'geometry': Hình dáng mái nhà (bắt buộc).
-    # - 'area_in_meters': Diện tích mái nhà (để tính quy mô dân cư).
-    # - 'confidence': Độ tin cậy của AI Google (để lọc bỏ nhà "ảo").
-    gdf = gdf[['geometry', 'area_in_meters', 'confidence']]
+    # Chỉ đổi tên nếu cột đó thực sự tồn tại trong file
+    gdf = gdf.rename(columns=name_map)
     
-    # 4. Xuất ra file GeoJSON. 
-    # Tại sao dùng GeoJSON? Vì nó chỉ có 1 file duy nhất, dễ quản lý hơn bộ 4-5 file của SHP.
+    # 4. Lọc cột với tên đã chuẩn hóa
+    # Bây giờ bạn đã có thể gọi đúng tên 'area_in_meters'
+    try:
+        gdf = gdf[['geometry', 'area_in_meters', 'confidence']]
+    except KeyError as e:
+        print(f"❌ Vẫn thiếu cột: {e}. Vui lòng kiểm tra lại danh sách cột ở trên.")
+        return
+
+    # 5. Xuất file GeoJSON
     gdf.to_file(output_path, driver='GeoJSON')
-    print(f"✅ Đã làm sạch dữ liệu.")
+    print(f"✅ Đã làm sạch dữ liệu thành công!")
+    print(f"📍 File lưu tại: {output_path}")
+
+if __name__ == "__main__":
+    clean_data()
