@@ -4,9 +4,6 @@ import folium
 from folium import plugins
 import os
 
-# ==========================================================
-# 1. ĐỊNH NGHĨA CÁC HÀM BỔ TRỢ (ĐỂ SỬA LỖI NAMEERROR)
-# ==========================================================
 
 def get_largest_component_safe(G):
     """Đảm bảo đồ thị liên thông để không bao giờ bị lỗi 'No Path'"""
@@ -26,12 +23,8 @@ def get_route_dist_raw(G, route):
             total_dist += float(data.get('length', 0))
     return total_dist
 
-# ==========================================================
-# 2. HÀM CHÍNH: TRỰC QUAN HÓA
-# ==========================================================
-
 def visualize_baxat_decision_map():
-    print("🎨 ĐANG KHỞI TẠO BẢN ĐỒ 3 CHIẾN LƯỢC: NGẮN NHẤT - AN TOÀN - CỨU HỘ...")
+    print("ĐANG KHỞI TẠO BẢN ĐỒ 3 CHIẾN LƯỢC: NGẮN NHẤT - AN TOÀN - CỨU HỘ...")
     
     path_graph = "models/baxat_mcdm_final.graphml"
     G = ox.load_graphml(path_graph)
@@ -44,11 +37,11 @@ def visualize_baxat_decision_map():
     
     G = get_largest_component_safe(G)
 
-    # 📍 Tọa độ Start/End của bạn
+    # Tọa độ Start/End của bạn
     start_lat, start_lng = 22.552237, 103.871800 
     end_lat, end_lng = 22.546029554286292, 103.88501551955392 
 
-    # --- ⚠️ GIẢ LẬP 2 ĐIỂM SẠT LỞ ---
+    # --- GIẢ LẬP 2 ĐIỂM SẠT LỞ ---
     landslide_blocks = [(22.548061, 103.876200), (22.550878, 103.878643)]
     for b_lat, b_lng in landslide_blocks:
         b_node = ox.distance.nearest_nodes(G, X=b_lng, Y=b_lat)
@@ -56,7 +49,7 @@ def visualize_baxat_decision_map():
             data['cost_safety'] = 10**9 
             data['cost_speed'] = 10**9
 
-    # --- 🚀 TÌM ĐƯỜNG THEO 3 TRỌNG SỐ KHÁC NHAU ---
+    # --- TÌM ĐƯỜNG THEO 3 TRỌNG SỐ KHÁC NHAU ---
     orig_node = ox.distance.nearest_nodes(G, X=start_lng, Y=start_lat)
     dest_node = ox.distance.nearest_nodes(G, X=end_lng, Y=end_lat)
 
@@ -69,9 +62,9 @@ def visualize_baxat_decision_map():
         route_rescue = nx.shortest_path(G, orig_node, dest_node, weight='cost_speed')
 
         print("-" * 50)
-        print(f"🚩 Tuyến NGẮN NHẤT (Đỏ): {get_route_dist_raw(G, route_shortest):.1f} m")
-        print(f"🛡️ Tuyến AN TOÀN (Xanh lá): {get_route_dist_raw(G, route_safety):.1f} m")
-        print(f"🚑 Tuyến CỨU HỘ (Xanh dương): {get_route_dist_raw(G, route_rescue):.1f} m")
+        print(f"Tuyến NGẮN NHẤT (Đỏ): {get_route_dist_raw(G, route_shortest):.1f} m")
+        print(f"Tuyến AN TOÀN (Xanh lá): {get_route_dist_raw(G, route_safety):.1f} m")
+        print(f"Tuyến CỨU HỘ (Xanh dương): {get_route_dist_raw(G, route_rescue):.1f} m")
         print("-" * 50)
 
         # --- VẼ BẢN ĐỒ ---

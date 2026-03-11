@@ -6,7 +6,7 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 
 def create_fused_dataset():
-    print("🌪️ KHỞI ĐỘNG MODULE 2: DATA FUSION & TRÍCH XUẤT CÓ ĐIỀU KIỆN...")
+    print("KHỞI ĐỘNG MODULE 2: DATA FUSION & TRÍCH XUẤT CÓ ĐIỀU KIỆN...")
 
     # 1. Khai báo đường dẫn (Đã trỏ thẳng vào file Slope_BatXat_DEM_30m của bạn)
     dem_path = "data/raw/dem/Copernicus_DEM_BatXat_30m.tif"
@@ -18,7 +18,7 @@ def create_fused_dataset():
         return
 
     # 2. ĐỌC MA TRẬN ĐỘ DỐC VÀ TÌM ĐIỂM THEO ĐIỀU KIỆN
-    print("🔍 Đang quét bản đồ để tìm các khu vực thỏa mãn điều kiện...")
+    print("Đang quét bản đồ để tìm các khu vực thỏa mãn điều kiện...")
     with rasterio.open(slope_path) as src_slope:
         slope_array = src_slope.read(1)
         transform = src_slope.transform
