@@ -91,7 +91,7 @@ def integrated_risk_assessment():
     }])
 
     # Đường dẫn lưu file
-    OUTPUT_PATH = r"e:\NCKH\GuardBaXat\Spatial-Intelligence\data\processed\daily_risk_report.csv"
+    OUTPUT_PATH = "data\processed\daily_risk_report.csv"
     report_df.to_csv(OUTPUT_PATH, index=False)
 
     print("\n" + "="*45)

@@ -6,14 +6,14 @@ def calculate_capacity_multi():
     # 1. Danh sách các kịch bản bạn đã chọn
     scenarios = [85, 90, 95]
     
-    print(f"🚀 BẮT ĐẦU PHÂN TÍCH SỨC CHỨA CHO {len(scenarios)} KỊCH BẢN...")
+    print(f"BẮT ĐẦU PHÂN TÍCH SỨC CHỨA CHO {len(scenarios)} KỊCH BẢN...")
 
     for level in scenarios:
         input_path = f"data/processed/flood_risk_map_{level}m.geojson"
         output_path = f"data/processed/final_analysis_{level}m.geojson"
 
         if not os.path.exists(input_path):
-            print(f"⚠️ Bỏ qua kịch bản {level}m: Không tìm thấy file {input_path}")
+            print(f"Bỏ qua kịch bản {level}m: Không tìm thấy file {input_path}")
             continue
 
         print(f"\n--- Đang xử lý kịch bản: {level}m ---")

@@ -3,7 +3,7 @@ import geopandas as gpd
 import os
 
 def download_roads_raw_4326():
-    print("🌍 ĐANG TẢI DỮ LIỆU NGUYÊN BẢN (KHÔNG HÀN GẮN - KHÔNG BIẾN ĐỔI CRS)...")
+    print("ĐANG TẢI DỮ LIỆU NGUYÊN BẢN (KHÔNG HÀN GẮN - KHÔNG BIẾN ĐỔI CRS)...")
 
     # 1. Tắt bộ nhớ đệm để lấy dữ liệu mới nhất
     ox.settings.use_cache = False
@@ -11,7 +11,7 @@ def download_roads_raw_4326():
     # 2. Đọc ranh giới chuẩn
     boundary_shp_path = "data/shapefiles/boundary/BatXat(moi)1.shp"
     if not os.path.exists(boundary_shp_path):
-        print(f"❌ Không tìm thấy ranh giới tại: {boundary_shp_path}")
+        print(f"Không tìm thấy ranh giới tại: {boundary_shp_path}")
         return
 
     # Luôn ép ranh giới về 4326 để đồng bộ với OSM
@@ -32,7 +32,7 @@ def download_roads_raw_4326():
         
         # Kiểm tra tọa độ ngay lập tức
         test_node = list(G.nodes(data=True))[0][1]
-        print(f"📍 Tọa độ gốc OSM: Long={test_node['x']:.4f}, Lat={test_node['y']:.4f}")
+        print(f"Tọa độ gốc OSM: Long={test_node['x']:.4f}, Lat={test_node['y']:.4f}")
 
         # 4. LƯU DỮ LIỆU
         save_dir = "data/shapefiles/infrastructure"
@@ -57,12 +57,12 @@ def download_roads_raw_4326():
         edges.to_file(shp_output, encoding='utf-8')
 
         print("-" * 50)
-        print("🚀 THÀNH CÔNG: Dữ liệu đã được tải về nguyên bản 100%.")
-        print(f"📂 Đã khớp hoàn toàn với ranh giới của bạn.")
+        print("THÀNH CÔNG: Dữ liệu đã được tải về nguyên bản 100%.")
+        print(f"Đã khớp hoàn toàn với ranh giới của bạn.")
         print("-" * 50)
 
     except Exception as e:
-        print(f"❌ Lỗi: {e}")
+        print(f"Lỗi: {e}")
 
 if __name__ == "__main__":
     download_roads_raw_4326()
