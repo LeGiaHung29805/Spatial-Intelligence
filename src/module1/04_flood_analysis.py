@@ -7,7 +7,7 @@ def analyze_risk(input_path, output_path, flood_level):
     # Đọc dữ liệu
     buildings = gpd.read_file(input_path)
 
-    # 1. Tính toán Độ sâu ngập lụt (Flood depth)
+    # 1.Tính toán Độ sâu ngập lụt (Flood depth)
     # Nếu z < mực nước lũ -> ngập = (mực nước lũ - z). Nếu không -> ngập = 0
     buildings['flood_depth'] = buildings['elevation_z'].apply(lambda z: max(0, flood_level - z))
 
@@ -49,7 +49,6 @@ def analyze_risk(input_path, output_path, flood_level):
 if __name__ == "__main__":
     input_file = "data/processed/buildings_with_z.geojson"
     
-    # Bạn có thể chạy vòng lặp cho nhiều kịch bản ngập khác nhau
     scenarios = [85, 90, 95] # Các mức nước lũ giả định
     
     for level in scenarios:

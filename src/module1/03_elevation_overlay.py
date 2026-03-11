@@ -8,7 +8,6 @@ def overlay_dem():
     dem_path = "data/raw/dem/Copernicus_DEM_BatXat_30m.tif"
     output_path = "data/processed/buildings_with_z.geojson"
     
-    # KIỂM TRA: File đầu vào có tồn tại không?
     if not os.path.exists(input_path):
         print(f"Không tìm thấy file nhà đã làm sạch tại: {input_path}")
         return
@@ -33,12 +32,11 @@ def overlay_dem():
         # 5. Trích xuất độ cao (Sample)
         print(f"Đang trích xuất cao trình cho {len(buildings)} công trình...")
         
-        # Chúng ta dùng danh sách tạm để theo dõi tiến độ cho đỡ sốt ruột
         elevations = []
         for i, val in enumerate(dem.sample(coords)):
             elevations.append(val[0])
             if i % 1000 == 0 and i > 0:
-                print(f"   > Đã xử lý {i} ngôi nhà...")
+                print(f" > Đã xử lý {i} ngôi nhà...")
         
         buildings['elevation_z'] = elevations
     
@@ -46,6 +44,5 @@ def overlay_dem():
     buildings.to_file(output_path, driver='GeoJSON')
     print(f"Hoàn thành! Kết quả đã được lưu tại: {output_path}")
 
-# --- QUAN TRỌNG: Lệnh gọi hàm để thực thi code ---
 if __name__ == "__main__":
     overlay_dem()

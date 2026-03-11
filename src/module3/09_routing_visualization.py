@@ -22,17 +22,17 @@ def get_route_dist_raw(G, route):
     return total_dist
 
 def visualize_baxat_decision_map():
-    print("🎨 ĐANG KHỞI TẠO BẢN ĐỒ CỨU HỘ THÔNG MINH BÁT XÁT...")
+    print("ĐANG KHỞI TẠO BẢN ĐỒ CỨU HỘ THÔNG MINH BÁT XÁT...")
     
     path_graph = "models/baxat_mcdm_final.graphml"
     if not os.path.exists(path_graph):
-        print("❌ Lỗi: Bạn cần chạy Bước 08 trước để có dữ liệu AHP!")
+        print("Lỗi: Bạn cần chạy Bước 08 trước để có dữ liệu AHP!")
         return
         
     G = ox.load_graphml(path_graph)
     
-    # 🔥 BƯỚC SỬA LỖI QUAN TRỌNG: ÉP KIỂU DỮ LIỆU SỐ CHO TẤT CẢ CẠNH
-    print("🧹 Đang chuẩn hóa dữ liệu số (Fixing TypeError)...")
+    # BƯỚC SỬA LỖI QUAN TRỌNG: ÉP KIỂU DỮ LIỆU SỐ CHO TẤT CẢ CẠNH
+    print("Đang chuẩn hóa dữ liệu số (Fixing TypeError)...")
     for u, v, k, data in G.edges(data=True, keys=True):
         # Ép tất cả trọng số về float để Dijkstra có thể cộng dồn
         data['length'] = float(data.get('length', 0))
@@ -41,7 +41,7 @@ def visualize_baxat_decision_map():
     
     # 1. Lọc mạng lưới liên thông (Giữ nguyên phần này)
     G = get_largest_component_safe(G)
-    print(f"✅ Mạng lưới liên thông sẵn sàng: {len(G.nodes)} nút giao.")
+    print(f"Mạng lưới liên thông sẵn sàng: {len(G.nodes)} nút giao.")
 
     # 2. TOẠ ĐỘ ĐIỂM ĐI VÀ ĐIỂM ĐẾN (Ví dụ tại khu vực trung tâm hoặc điểm dân cư)
     # Gợi ý: Bạn có thể thay đổi tọa độ này để kiểm tra các khu vực sạt lở khác nhau
@@ -52,10 +52,10 @@ def visualize_baxat_decision_map():
     orig_node = ox.distance.nearest_nodes(G, X=start_lng, Y=start_lat)
     dest_node = ox.distance.nearest_nodes(G, X=end_lng, Y=end_lat)
     
-    print(f"📍 Đã bắt được Node gần nhất: Start({orig_node}) -> End({dest_node})")
+    print(f"Đã bắt được Node gần nhất: Start({orig_node}) -> End({dest_node})")
 
     # 3. THỰC THI THUẬT TOÁN TÌM ĐƯỜNG ĐA CHIẾN LƯỢC
-    print("🚀 AI đang tính toán lộ trình tối ưu dựa trên trọng số AHP...")
+    print("AI đang tính toán lộ trình tối ưu dựa trên trọng số AHP...")
     try:
         # Lộ trình ngắn nhất (Chỉ quan tâm khoảng cách - Rủi ro cao)
         route_shortest = nx.shortest_path(G, orig_node, dest_node, weight='length')
@@ -72,14 +72,14 @@ def visualize_baxat_decision_map():
         d_rescue = get_route_dist_raw(G, route_rescue)
 
         print("-" * 50)
-        print(f"📊 BÁO CÁO PHÂN TÍCH LỘ TRÌNH:")
-        print(f"🚩 Tuyến NGẮN NHẤT: {d_short:.1f} m (Cảnh báo: Có thể đi qua vùng sạt lở)")
-        print(f"🛡️ Tuyến AN TOÀN:   {d_safety:.1f} m (Né tránh rủi ro sạt lở)")
-        print(f"🚑 Tuyến CỨU HỘ:   {d_rescue:.1f} m (Phù hợp xe cơ giới)")
+        print(f"BÁO CÁO PHÂN TÍCH LỘ TRÌNH:")
+        print(f"Tuyến NGẮN NHẤT: {d_short:.1f} m (Cảnh báo: Có thể đi qua vùng sạt lở)")
+        print(f"Tuyến AN TOÀN:   {d_safety:.1f} m (Né tránh rủi ro sạt lở)")
+        print(f"Tuyến CỨU HỘ:   {d_rescue:.1f} m (Phù hợp xe cơ giới)")
         print("-" * 50)
 
     except nx.NetworkXNoPath:
-        print("❌ Lỗi: Không thể tìm thấy đường nối giữa 2 khu vực này (Kẽ hở địa lý quá lớn)!")
+        print("Lỗi: Không thể tìm thấy đường nối giữa 2 khu vực này (Kẽ hở địa lý quá lớn)!")
         return
 
     # 4. VẼ BẢN ĐỒ TƯƠNG TÁC FOLIUM
@@ -116,7 +116,7 @@ def visualize_baxat_decision_map():
     if not os.path.exists(os.path.dirname(output_html)): os.makedirs(os.path.dirname(output_html))
     m.save(output_html)
     
-    print(f"✅ THÀNH CÔNG! Hãy mở file HTML để xem kết quả: {output_html}")
+    print(f"THÀNH CÔNG! Hãy mở file HTML để xem kết quả: {output_html}")
 
 if __name__ == "__main__":
     visualize_baxat_decision_map()

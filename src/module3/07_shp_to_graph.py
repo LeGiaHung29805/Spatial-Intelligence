@@ -10,7 +10,7 @@ def convert_shp_to_graph():
     shp_path = "data/shapefiles/infrastructure/Duong_Bat_Xat.shp"
     
     if not os.path.exists(shp_path):
-        print(f"❌ Không tìm thấy file tại: {shp_path}")
+        print(f"Không tìm thấy file tại: {shp_path}")
         return
 
     # 1. Đọc và chuẩn hóa LineString
@@ -77,10 +77,10 @@ def convert_shp_to_graph():
         save_path = "models/baxat_local_graph.graphml"
         ox.save_graphml(G_final, save_path)
         
-        print(f"🚀 THÀNH CÔNG: Đã nhúng C4 (Hạng đường), C5 (Cầu), C6 (Cộng đồng) vào đồ thị.")
+        print(f"THÀNH CÔNG: Đã nhúng C4 (Hạng đường), C5 (Cầu), C6 (Cộng đồng) vào đồ thị.")
         return G_final
     except Exception as e:
-        print(f"❌ Lỗi hệ thống: {e}")
+        print(f"Lỗi hệ thống: {e}")
 
 if __name__ == "__main__":
     convert_shp_to_graph()
