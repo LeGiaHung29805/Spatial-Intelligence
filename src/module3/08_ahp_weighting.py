@@ -34,7 +34,7 @@ def calculate_ahp_6x6(strategy="safety"):
     return weights
 
 def apply_mcdm_to_raw_graph():
-    print("🧠 ĐANG TÍCH HỢP TRÍ TUỆ AHP VÀO ĐỒ THỊ NGUYÊN BẢN (4326)...")
+    print("ĐANG TÍCH HỢP TRÍ TUỆ AHP VÀO ĐỒ THỊ NGUYÊN BẢN (4326)...")
     
     # Đường dẫn file
     graph_in = "data/shapefiles/infrastructure/Duong_Bat_Xat_Connected.graphml"
@@ -42,7 +42,7 @@ def apply_mcdm_to_raw_graph():
     output_path = "emodels/baxat_mcdm_final.graphml"
     
     if not os.path.exists(graph_in):
-        print("❌ Không tìm thấy file đồ thị gốc! Hãy chạy lại file Download bản nguyên bản.")
+        print("Không tìm thấy file đồ thị gốc! Hãy chạy lại file Download bản nguyên bản.")
         return
 
     # 1. Nạp đồ thị
@@ -54,7 +54,7 @@ def apply_mcdm_to_raw_graph():
         f_risk = float(risk_df['flood_risk'].iloc[0]) / 100
         l_risk = float(risk_df['landslide_risk'].iloc[0]) / 100
     except:
-        print("⚠️ Cảnh báo: Thiếu file rủi ro, sử dụng giá trị mặc định (50%).")
+        print("Cảnh báo: Thiếu file rủi ro, sử dụng giá trị mặc định (50%).")
         f_risk, l_risk = 0.5, 0.5
 
     # 3. Tính trọng số AHP
@@ -104,10 +104,10 @@ def apply_mcdm_to_raw_graph():
     ox.save_graphml(G, output_path)
     
     print("-" * 50)
-    print(f"✅ THÀNH CÔNG: Đồ thị thông minh đã sẵn sàng cho Module 3.")
-    print(f"🛡️ Trọng số Safety (C1->C6): {np.round(w_s, 3)}")
-    print(f"🚑 Trọng số Rescue (C1->C6): {np.round(w_sp, 3)}")
-    print(f"💾 File: {output_path}")
+    print(f"THÀNH CÔNG: Đồ thị thông minh đã sẵn sàng cho Module 3.")
+    print(f"Trọng số Safety (C1->C6): {np.round(w_s, 3)}")
+    print(f"Trọng số Rescue (C1->C6): {np.round(w_sp, 3)}")
+    print(f"File: {output_path}")
     print("-" * 50)
 
 if __name__ == "__main__":

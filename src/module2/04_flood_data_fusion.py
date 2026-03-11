@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from sklearn.preprocessing import MinMaxScaler
 
 def flood_data_fusion_2years():
-    print("🧬 BƯỚC 4: THỰC HIỆN DATA FUSION (2 NĂM DỮ LIỆU)...")
+    print("BƯỚC 4: THỰC HIỆN DATA FUSION (2 NĂM DỮ LIỆU)...")
 
     # --- CẤU HÌNH ---
     API_KEY = "97JQA9YSSKCDXW3HVV8CZDQB6" 
@@ -20,7 +20,7 @@ def flood_data_fusion_2years():
     # 1. Tự động tính toán mốc 2 năm (730 ngày)
     end_date = datetime.now().strftime('%Y-%m-%d')
     start_date = (datetime.now() - timedelta(days=730)).strftime('%Y-%m-%d')
-    print(f"🕒 Chu kỳ lấy dữ liệu: Từ {start_date} đến {end_date}")
+    print(f"Chu kỳ lấy dữ liệu: Từ {start_date} đến {end_date}")
 
     # 2. Lấy tọa độ tâm huyện Bát Xát
     gdf = gpd.read_file(SHP_PATH).to_crs(epsg=4326)
@@ -33,13 +33,13 @@ def flood_data_fusion_2years():
     
     response = requests.get(url, params=params)
     if response.status_code != 200:
-        print(f"❌ Lỗi API ({response.status_code}). Có thể do hết quota hoặc sai Key.")
+        print(f"Lỗi API ({response.status_code}). Có thể do hết quota hoặc sai Key.")
         return
     
     df_rain = pd.DataFrame(response.json()['days'])
 
     # 4. Trích xuất đặc trưng tĩnh từ các file TIF của bạn
-    print("🌍 Trộn dữ liệu tĩnh (DEM, Slope, LandCover)...")
+    print("Trộn dữ liệu tĩnh (DEM, Slope, LandCover)...")
     with rasterio.open(DEM_PATH) as dem, rasterio.open(SLOPE_PATH) as slope, rasterio.open(LC_PATH) as lc:
         row, col = dem.index(lon, lat)
         val_dem = dem.read(1)[row, col]
