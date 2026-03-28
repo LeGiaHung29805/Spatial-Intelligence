@@ -1,53 +1,63 @@
-import geopandas as gpd
-import rasterio
-from rasterio.mask import mask
+import joblib
+import pandas as pd
+import numpy as np
 import os
+import warnings
 
-class SpatialHandler:
-    def __init__(self, boundary_path):
-        """Khởi tạo với file ranh giới chuẩn BatXat(moi)1.shp"""
-        
-        if not os.path.exists(boundary_path):
-            raise FileNotFoundError(f"Không tìm thấy file shapefile tại: {boundary_path}")
-            
-        self.boundary_gdf = gpd.read_file(boundary_path)
-        
-        
-        if self.boundary_gdf.crs != "EPSG:4326":
-            self.boundary_gdf = self.boundary_gdf.to_crs("EPSG:4326")
-        
-    def get_bbox(self):
-        """Trả về [minx, miny, maxx, maxy] để lắp vào API OpenTopography/Sentinel Hub"""
-        bounds = self.boundary_gdf.total_bounds
-        return bounds.tolist()
+warnings.filterwarnings('ignore')
 
-    def clip_raster(self, input_path, output_path):
-        """Cắt ảnh vệ tinh hoặc DEM theo hình dạng huyện Bát Xát"""
-        with rasterio.open(input_path) as src:
+def simulate_storm(luong_mua_mm):
+    print(f"\nKÍCH HOẠT TRẠM MÔ PHỎNG THỜI TIẾT: Bơm {luong_mua_mm}mm mưa vào hệ thống...")
+    
+    model_path = "models/rf_dynamic_landslide_model.pkl"
+    if not os.path.exists(model_path):
+        print("Lỗi: Không tìm thấy model AI. Hãy chạy lại Bước 05!")
+        return
         
-            boundary_projected = self.boundary_gdf.to_crs(src.crs)
+    rf_model = joblib.load(model_path)
 
-            out_image, out_transform = mask(src, boundary_projected.geometry, crop=True)
-            out_meta = src.meta.copy()
+    do_am_dat = 0.9 if luong_mua_mm >= 150 else 0.4
+    
+    # ['Slope', 'Elevation', 'Dist_to_Water', 'precip_3d_BAT_XAT', 'soil_BAT_XAT']
+    scenario_data = pd.DataFrame({
+        'Slope': [35],              # Dốc 35 độ (Điểm tới hạn)
+        'Elevation': [800],         # Cao độ 800m
+        'Dist_to_Water': [100],     # Cách suối 100m
+        'precip_3d_BAT_XAT': [luong_mua_mm], 
+        'soil_BAT_XAT': [do_am_dat]
+    })
 
-        out_meta.update({
-            "driver": "GTiff",
-            "height": out_image.shape[1],
-            "width": out_image.shape[2],
-            "transform": out_transform
-        })
+    ai_prediction = rf_model.predict_proba(scenario_data)[0]
+    landslide_risk_percent = round(ai_prediction[1] * 100, 2)
+    
 
-        with rasterio.open(output_path, "w", **out_meta) as dest:
-            dest.write(out_image)
-        return output_path
+    flood_risk_percent = min(100.0, luong_mua_mm / 200 * 100)
 
-    def clean_vector_layers(self, vector_path, output_path):
-        """Cắt các lớp Sông, Hồ, Đường theo ranh giới huyện"""
-        gdf = gpd.read_file(vector_path)
-        
-        if gdf.crs != self.boundary_gdf.crs:
-            gdf = gdf.to_crs(self.boundary_gdf.crs)
-            
-        clipped_gdf = gpd.clip(gdf, self.boundary_gdf)
-        clipped_gdf.to_file(output_path)
-        return output_path
+    print("\n" + "═"*50)
+    print("KẾT QUẢ PHÂN TÍCH TỪ BỘ NÃO TRÍ TUỆ NHÂN TẠO")
+    print("═"*50)
+    print(f"Lượng mưa đầu vào: {luong_mua_mm} mm")
+    print(f"Tọa độ thử nghiệm: Dốc 35°, Ven suối")
+    print(f"XÁC SUẤT SẠT LỞ (AI Phán đoán): {landslide_risk_percent}%")
+    print(f"XÁC SUẤT NGẬP LỤT: {flood_risk_percent}%")
+    print("═"*50)
+
+    output_dir = "data/processed"
+    os.makedirs(output_dir, exist_ok=True)
+    report_path = os.path.join(output_dir, "daily_risk_report.csv")
+    
+    report_df = pd.DataFrame({
+        'date': [pd.Timestamp.now().strftime("%Y-%m-%d")],
+        'rainfall_mm': [luong_mua_mm],
+        'landslide_risk': [landslide_risk_percent],
+        'flood_risk': [flood_risk_percent]
+    })
+    
+    report_df.to_csv(report_path, index=False)
+    print(f"Đã xuất báo cáo rủi ro ra file: {report_path}")
+    print("SẴN SÀNG: Bây giờ hãy chạy BƯỚC 08 và BƯỚC 10 để xem đường đi biến đổi!\n")
+
+if __name__ == "__main__":
+
+    LƯỢNG_MƯA_HÔM_NAY = 100 
+    simulate_storm(LƯỢNG_MƯA_HÔM_NAY)

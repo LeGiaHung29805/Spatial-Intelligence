@@ -1,16 +1,23 @@
-import sys
-import os
+import rasterio
+import geopandas as gpd
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# Nạp thử 1 file
+with rasterio.open("data/raw/slope/Slope_BatXat_DEM_30m.tif") as src:
+    raster_crs = src.crs
+    raster_bounds = src.bounds
 
-from src.utils.spatial_handler import SpatialHandler
+# Nạp Shapefile
+gdf = gpd.read_file("data/shapefiles/infrastructure/Duong_Bat_Xat_New_All.shp").to_crs(raster_crs)
+vector_bounds = gdf.total_bounds
 
-SHP_PATH = "data/shapefiles/boundary/BatXat(moi)1.shp" 
+print(f"Hệ tọa độ Raster: {raster_crs}")
+print(f"Hệ tọa độ Vector: {gdf.crs}")
+print(f"Ranh giới Raster: {raster_bounds}")
+print(f"Ranh giới Vector: {vector_bounds}")
 
-try:
-    handler = SpatialHandler(SHP_PATH)
-    bbox = handler.get_bbox()
-    print("--- KẾT QUẢ ---")
-    print(f"Toạ độ BBOX Bát Xát: {bbox}")
-except Exception as e:
-    print(f"Lỗi rồi: {e}")
+# Kiểm tra xem Vector có nằm trong Raster không
+if (vector_bounds[0] > raster_bounds[2] or vector_bounds[2] < raster_bounds[0] or
+    vector_bounds[1] > raster_bounds[3] or vector_bounds[3] < raster_bounds[1]):
+    print("❌ LỖI: Đoạn đường và Ảnh vệ tinh KHÔNG nằm cùng một vùng địa lý!")
+else:
+    print("✅ Hai dữ liệu khớp nhau về không gian.")
