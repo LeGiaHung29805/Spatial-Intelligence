@@ -25,3 +25,6 @@ lxml
 folium
 Sequential
 LSTM
+seaborn
+scipy
+imbalanced-learn

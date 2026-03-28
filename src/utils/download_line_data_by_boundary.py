@@ -9,7 +9,11 @@ def download_roads_raw_4326():
     ox.settings.use_cache = False
 
     # 2. Đọc ranh giới chuẩn
+<<<<<<< HEAD
     boundary_shp_path = "data/shapefiles/boundary/BatXat(moi)1.shp"
+=======
+    boundary_shp_path = "data/shapefiles/boundary/BatXat_moi_2.shp"
+>>>>>>> origin/GiaHung
     if not os.path.exists(boundary_shp_path):
         print(f"Không tìm thấy ranh giới tại: {boundary_shp_path}")
         return
@@ -39,7 +43,7 @@ def download_roads_raw_4326():
         if not os.path.exists(save_dir): os.makedirs(save_dir)
 
         # Lưu file GraphML (Đây là file gốc cho mọi bước sau)
-        graphml_path = os.path.join(save_dir, "Duong_Bat_Xat_Connected.graphml")
+        graphml_path = os.path.join(save_dir, "Duong_Bat_Xat_Connected_All.graphml")
         ox.save_graphml(G, filepath=graphml_path)
         
         # 5. XUẤT SHAPEFILE (Bản sửa lỗi Engine Pyogrio)
@@ -52,7 +56,11 @@ def download_roads_raw_4326():
         # Đảm bảo GeoDataFrame mang hệ tọa độ 4326 trước khi ghi file
         edges = edges.set_crs("EPSG:4326", allow_override=True)
         
+<<<<<<< HEAD
         shp_output = os.path.join(save_dir, "Duong_Bat_Xat_New.shp")
+=======
+        shp_output = os.path.join(save_dir, "Duong_Bat_Xat_New_All.shp")
+>>>>>>> origin/GiaHung
         # Ghi file không truyền tham số 'crs' để tránh lỗi engine
         edges.to_file(shp_output, encoding='utf-8')
 
