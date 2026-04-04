@@ -29,3 +29,5 @@ seaborn
 scipy
 imbalanced-learn
 schedule
+flask-cors
+flask

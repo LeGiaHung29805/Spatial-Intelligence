@@ -52,3 +52,278 @@ KeyError: 'avg_slope'
 
 2026-03-30 00:46:08,947 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
 2026-03-30 00:46:08,947 - SCHEDULER - INFO - Hệ thống Scheduler đã khởi động. Đang chờ đến giờ ...
+2026-04-03 17:31:19,497 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 17:31:19,497 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 17:31:38,414 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 17:31:38,415 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 17:31:49,183 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 17:31:49,183 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 17:32:18,724 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 17:32:18,724 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 17:33:07,990 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 17:33:07,991 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 17:33:07,992 - SCHEDULER - INFO - Hệ thống Scheduler đã khởi động. Đang chờ đến giờ ...
+2026-04-03 17:38:07,994 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 17:38:07,994 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 17:38:10,146 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 17:38:10,146 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 17:38:22,445 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 17:38:22,445 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 17:39:04,299 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 17:39:04,300 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 17:44:04,304 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 17:44:04,304 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 17:44:07,200 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 17:44:07,200 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 17:44:21,942 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 17:44:21,942 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 17:45:06,672 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 17:45:06,672 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 17:50:06,675 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 17:50:06,676 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 17:50:08,714 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 17:50:08,715 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 17:50:22,319 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 17:50:22,320 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 17:51:03,722 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 17:51:03,722 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 17:56:03,725 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 17:56:03,726 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 17:56:05,723 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 17:56:05,723 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 17:56:18,027 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 17:56:18,027 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 17:56:59,195 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 17:56:59,195 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 18:01:59,198 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 18:01:59,199 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 18:02:01,068 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 18:02:01,069 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 18:02:12,351 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 18:02:12,351 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 18:02:51,773 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 18:02:51,774 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 18:07:51,775 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 18:07:51,776 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 18:07:53,549 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 18:07:53,550 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 18:08:02,640 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 18:08:02,641 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 18:08:40,061 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 18:08:40,061 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 18:13:40,064 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 18:13:40,065 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 18:13:41,923 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 18:13:41,923 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 18:13:51,377 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 18:13:51,377 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 18:14:31,957 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 18:14:31,957 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 18:19:31,960 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 18:19:31,960 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 18:19:33,812 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 18:19:33,812 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 18:19:45,120 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 18:19:45,120 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 18:20:24,275 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 18:20:24,275 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 18:25:24,278 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 18:25:24,279 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 18:25:26,092 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 18:25:26,092 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 18:25:35,754 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 18:25:35,754 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 18:26:14,026 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 18:26:14,026 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 18:31:14,028 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 18:31:14,029 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 18:31:15,855 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 18:31:15,855 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 18:31:25,410 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 18:31:25,411 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 18:32:10,306 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 18:32:10,306 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 18:37:10,309 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 18:37:10,309 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 18:37:12,264 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 18:37:12,264 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 18:37:23,941 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 18:37:23,941 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 18:38:02,475 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 18:38:02,476 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 19:21:05,644 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 19:21:05,645 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 19:21:08,266 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 19:21:08,266 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 19:21:21,336 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 19:21:21,337 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 19:22:10,521 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 19:22:10,521 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 19:27:10,526 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 19:27:10,526 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 19:27:12,441 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 19:27:12,442 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 19:27:24,043 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 19:27:24,044 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 19:28:02,301 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 19:28:02,301 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 19:34:01,736 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 19:34:01,736 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 19:34:03,583 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 19:34:03,583 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 19:34:13,679 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 19:34:13,679 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 19:34:52,956 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 19:34:52,956 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 19:40:07,258 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 19:40:07,259 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 19:40:10,421 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 19:40:10,421 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 19:40:23,971 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 19:40:23,971 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 19:41:07,668 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 19:41:07,669 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 19:46:07,673 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 19:46:07,673 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 19:46:09,576 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 19:46:09,577 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 19:46:21,504 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 19:46:21,504 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 19:47:02,221 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 19:47:02,222 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 19:52:02,225 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 19:52:02,226 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 19:52:04,062 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 19:52:04,062 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 19:52:15,085 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 19:52:15,085 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 19:53:00,907 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 19:53:00,908 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 19:58:00,910 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 19:58:00,910 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 19:58:03,157 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 19:58:03,158 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 19:58:16,690 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 19:58:16,690 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 19:59:00,815 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 19:59:00,816 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 20:04:00,818 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 20:04:00,819 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 20:04:02,750 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 20:04:02,750 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 20:04:12,512 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 20:04:12,513 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 20:04:50,841 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 20:04:50,841 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 20:09:50,845 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 20:09:50,845 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 20:09:52,616 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 20:09:52,617 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 20:10:01,984 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 20:10:01,985 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 20:10:39,882 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 20:10:39,882 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 20:15:39,885 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 20:15:39,886 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 20:15:41,803 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 20:15:41,804 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 20:15:51,061 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 20:15:51,061 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 20:16:29,128 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 20:16:29,128 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 20:21:29,132 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 20:21:29,133 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 20:21:30,976 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 20:21:30,976 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 20:21:43,234 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 20:21:43,235 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 20:22:25,629 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 20:22:25,629 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 20:27:25,633 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 20:27:25,634 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 20:27:27,482 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 20:27:27,483 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 20:27:38,841 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 20:27:38,841 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-03 20:28:19,812 - SCHEDULER - INFO - Hoàn thành: src\module3_routing\08_ahp_weighting.py
+
+2026-04-03 20:28:19,812 - SCHEDULER - INFO - ========== KẾT THÚC CHU KỲ CẬP NHẬT ==========
+2026-04-03 20:33:19,815 - SCHEDULER - INFO - ========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========
+2026-04-03 20:33:19,816 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-03 20:33:22,232 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-03 20:33:22,232 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-03 20:33:36,086 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-03 20:33:36,086 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py

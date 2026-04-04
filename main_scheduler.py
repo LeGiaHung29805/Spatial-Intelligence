@@ -27,7 +27,7 @@ def run_script(script_path):
 
 def daily_ai_pipeline():
     """Chuỗi công việc tự động mỗi ngày của AI-Service"""
-    logging.info("========== BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ==========")
+    logging.info(" BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY ")
     
     # Gọi API lấy thời tiết và đồng bộ CSDL
     run_script(os.path.join("src", "module2_prediction", "04_flood_data_fusion.py"))
@@ -38,7 +38,7 @@ def daily_ai_pipeline():
     # Cập nhật lại đồ thị giao thông (MCDM Cost) dựa trên rủi ro mới
     run_script(os.path.join("src", "module3_routing", "08_ahp_weighting.py"))
     
-    logging.info("========== KẾT THÚC CHU KỲ CẬP NHẬT ==========")
+    logging.info("KẾT THÚC CHU KỲ CẬP NHẬT")
 
 def setup_schedule():
     # Lên lịch chạy vào một giờ cố định mỗi ngày (ví dụ: 06:00 sáng)
