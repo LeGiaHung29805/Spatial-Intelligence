@@ -226,5 +226,67 @@ def find_safe_route():
     except Exception as e:
         logger.error(f"Lỗi API safe-routing: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+
+    # ==========================================
+# API DÀNH RIÊNG CHO ADMIN: So sánh 3 loại lộ trình
+# ==========================================
+@app.route('/api/v1/ai/admin-routing', methods=['POST'])
+def admin_compare_routing():
+    try:
+        data = request.json
+        
+        # 1. KHAI BÁO RÕ CÁC BIẾN TỌA ĐỘ VÀO ĐÂY ĐỂ DÙNG LẠI PHÍA DƯỚI
+        start_lat = float(data['startLat'])
+        start_lng = float(data['startLng'])
+        end_lat = float(data['endLat'])
+        end_lng = float(data['endLng'])
+
+        # 2. Tìm Node gần nhất
+        start_node = find_nearest_node(start_lat, start_lng)
+        end_node = find_nearest_node(end_lat, end_lng)
+
+        scenarios = {
+            "shortest": "length",
+            "safety": "cost_safety",
+            "rescue": "cost_speed"
+        }
+        
+        results = {}
+
+        for key, weight_attr in scenarios.items():
+            try:
+                path = nx.shortest_path(G, source=start_node, target=end_node, weight=weight_attr)
+                
+                coords = []
+                
+                # Nối từ điểm Click (A) ra đường lớn
+                coords.append([start_lat, start_lng])
+                
+                for node in path:
+                    n_data = G.nodes[node]
+                    coords.append([float(n_data['y']), float(n_data['x'])])
+                
+                # Nối từ đường lớn vào tận cửa nhà (B)
+                coords.append([end_lat, end_lng])
+                
+                results[key] = coords
+            except nx.NetworkXNoPath:
+                results[key] = [] 
+
+        if not results["safety"] and not results["rescue"]:
+            return jsonify({"status": "fail", "message": "Khu vực bị cô lập hoàn toàn, AI không tìm thấy đường đi thực tế."}), 404
+
+        return jsonify({
+            "status": "success",
+            "data": results 
+        })
+
+    except Exception as e:
+        logger.error(f"Lỗi Admin Routing: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+   
