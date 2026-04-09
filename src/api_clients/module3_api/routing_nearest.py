@@ -3,11 +3,15 @@ import networkx as nx
 import numpy as np
 import logging
 import sys
+
 from pathlib import Path
-from flask import Flask, request, jsonify
-from flask_cors import CORS 
 from scipy.spatial import KDTree
 from sqlalchemy import text
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 # Cấu hình Logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,12 +23,23 @@ sys.path.append(str(PROJECT_ROOT))
 
 from src.CSDL.config.db_config import get_engine
 
-app = Flask(__name__)
-CORS(app)  # Cho phép mọi Domain (như localhost:3000) gọi API này
+# Khởi tạo ứng dụng FastAPI
+app = FastAPI(title="Bat Xat DSS AI API", version="1.0.0")
+
+# Cấu hình CORS giống hệt Flask-CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Cho phép mọi Domain (như localhost:3000) gọi API này
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 GRAPH_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 
+# ==========================================
 # KHỞI TẠO DỮ LIỆU ĐỒ THỊ (Chạy 1 lần khi Start API)
+# ==========================================
 logger.info("Đang tải đồ thị MCDM bằng OSMnx...")
 try:
     G = ox.load_graphml(GRAPH_PATH)
@@ -51,20 +66,34 @@ for node, data in G.nodes(data=True):
 kdtree = KDTree(node_coords)
 logger.info(f"Đã tải xong {len(node_ids)} nodes và tạo KDTree thành công!")
 
-def find_nearest_node(lat, lng):
+def find_nearest_node(lat: float, lng: float):
     """Tìm ID của node gần với tọa độ GPS nhất"""
     distance, index = kdtree.query([lat, lng])
     return node_ids[index]
 
+# ==========================================
+# ĐỊNH NGHĨA MODEL DỮ LIỆU ĐẦU VÀO (PYDANTIC)
+# ==========================================
+class ShelterRequest(BaseModel):
+    currentLat: float
+    currentLng: float
+    strategy: str = 'safety'
+
+class SafeRouteRequest(BaseModel):
+    startLat: float
+    startLng: float
+    endLat: float
+    endLng: float
+
+# ==========================================
 # API ENDPOINT TÌM ĐIỂM SƠ TÁN (PHIÊN BẢN CHỌN TOP 3 ĐỊA ĐIỂM)
-@app.route('/api/v1/ai/find-safe-shelter', methods=['POST'])
-def find_safe_shelter():
+# ==========================================
+@app.post('/api/v1/ai/find-safe-shelter')
+def find_safe_shelter(req: ShelterRequest):
     try:
-        data = request.json
-        start_lat = float(data.get('currentLat'))
-        start_lng = float(data.get('currentLng'))
-        
-        strategy = data.get('strategy', 'safety') 
+        start_lat = req.currentLat
+        start_lng = req.currentLng
+        strategy = req.strategy 
         weight_attr = 'cost_speed' if strategy == 'rescue' else 'cost_safety'
 
         start_node = find_nearest_node(start_lat, start_lng)
@@ -76,7 +105,6 @@ def find_safe_shelter():
             state_query = text("SELECT active_flood_level FROM batxat_system_state LIMIT 1")
             system_state = conn.execute(state_query).fetchone()
             current_flood_level = float(system_state.active_flood_level) if system_state else 0.0
-
 
             query = text("""
                 SELECT DISTINCT ON (sh.id)
@@ -105,7 +133,10 @@ def find_safe_shelter():
                 })
 
         if not shelters:
-            return jsonify({"status": "fail", "message": "Không có điểm sơ tán nào còn chỗ hoặc an toàn khỏi lũ/sạt lở."}), 404
+            return JSONResponse(
+                status_code=404, 
+                content={"status": "fail", "message": "Không có điểm sơ tán nào còn chỗ hoặc an toàn khỏi lũ/sạt lở."}
+            )
 
         raw_options = []
 
@@ -152,7 +183,7 @@ def find_safe_shelter():
         # Sắp xếp danh sách dựa trên chi phí
         raw_options.sort(key=lambda x: x['cost_value'])
 
-        # FIX 2: BỘ LỌC ĐẢM BẢO CHỈ LẤY CÁC TÒA NHÀ DUY NHẤT (ĐỀ PHÒNG TRƯỜNG HỢP CÙNG 1 NODE)
+        # BỘ LỌC ĐẢM BẢO CHỈ LẤY CÁC TÒA NHÀ DUY NHẤT
         unique_options = []
         seen_ids = set()
         for opt in raw_options:
@@ -164,43 +195,46 @@ def find_safe_shelter():
         top_3_options = unique_options[:3]
 
         if top_3_options:
-            return jsonify({
+            return {
                 "status": "success",
                 "message": f"Đã tìm thấy {len(top_3_options)} điểm sơ tán an toàn nhất xung quanh bạn.",
                 "strategy_used": strategy,
                 "options": top_3_options
-            })
+            }
         else:
-            return jsonify({"status": "fail", "message": "Các tuyến đường đều bị cô lập do thiên tai."}), 404
+            return JSONResponse(
+                status_code=404, 
+                content={"status": "fail", "message": "Các tuyến đường đều bị cô lập do thiên tai."}
+            )
 
     except Exception as e:
         logger.error(f"Lỗi xử lý API: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
 # ==========================================
 # API TÌM LỘ TRÌNH AN TOÀN NHẤT (A -> B)
 # ==========================================
-@app.route('/api/v1/ai/safe-routing', methods=['POST'])
-def find_safe_route():
+@app.post('/api/v1/ai/safe-routing')
+def find_safe_route(req: SafeRouteRequest):
     try:
-        data = request.json
-        start_lat = float(data.get('startLat'))
-        start_lng = float(data.get('startLng'))
-        end_lat = float(data.get('endLat'))
-        end_lng = float(data.get('endLng'))
+        start_lat = req.startLat
+        start_lng = req.startLng
+        end_lat = req.endLat
+        end_lng = req.endLng
 
         # Tìm Node trên đồ thị gần nhất với tọa độ A và B
         start_node = find_nearest_node(start_lat, start_lng)
         end_node = find_nearest_node(end_lat, end_lng)
 
         if start_node == end_node:
-            return jsonify({
+            return {
                 "status": "success", 
                 "message": "Bạn đang ở rất gần điểm đến.", 
                 "route_coordinates": []
-            })
+            }
 
         try:
-            # SỨC MẠNH CỦA AI: Dùng weight='cost_safety' để thuật toán tự động né vùng đỏ
+            # Dùng weight='cost_safety' để thuật toán tự động né vùng đỏ
             route_nodes = nx.shortest_path(G, source=start_node, target=end_node, weight='cost_safety')
             total_cost = nx.shortest_path_length(G, source=start_node, target=end_node, weight='cost_safety')
 
@@ -210,21 +244,23 @@ def find_safe_route():
                 node_data = G.nodes[node]
                 route_coordinates.append([float(node_data['y']), float(node_data['x'])])
 
-            return jsonify({
+            return {
                 "status": "success",
                 "message": "Đã tìm thấy lộ trình an toàn nhất (đã tránh các điểm ngập/sạt lở).",
                 "route_coordinates": route_coordinates,
                 "total_mcdm_cost": round(total_cost, 2)
-            })
+            }
 
         except nx.NetworkXNoPath:
-            return jsonify({
-                "status": "fail", 
-                "message": "Không tìm thấy đường đi an toàn. Vị trí đích có thể đã bị cô lập hoàn toàn."
-            }), 404
+            return JSONResponse(
+                status_code=404, 
+                content={"status": "fail", "message": "Không tìm thấy đường đi an toàn. Vị trí đích có thể đã bị cô lập hoàn toàn."}
+            )
 
     except Exception as e:
         logger.error(f"Lỗi API safe-routing: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # FastAPI chạy qua uvicorn thay vì app.run
+    uvicorn.run("routing_nearest:app", host="0.0.0.0", port=5000, reload=True)
