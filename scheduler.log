@@ -327,3 +327,43 @@ KeyError: 'avg_slope'
 2026-04-03 20:33:36,086 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
 
 2026-04-03 20:33:36,086 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-05 17:26:30,847 - SCHEDULER - INFO -  BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY 
+2026-04-05 17:26:30,847 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-05 17:26:38,711 - SCHEDULER - INFO -  BẮT ĐẦU CHU KỲ CẬP NHẬT AI HÀNG NGÀY 
+2026-04-05 17:26:38,712 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\04_flood_data_fusion.py
+2026-04-05 17:26:53,582 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\04_flood_data_fusion.py
+
+2026-04-05 17:26:53,583 - SCHEDULER - INFO - Bắt đầu chạy: src\module2_prediction\06_integrated_risk_prediction.py
+2026-04-05 17:27:21,931 - SCHEDULER - INFO - Hoàn thành: src\module2_prediction\06_integrated_risk_prediction.py
+
+2026-04-05 17:27:21,932 - SCHEDULER - INFO - Bắt đầu chạy: src\module3_routing\08_ahp_weighting.py
+2026-04-05 17:27:26,346 - SCHEDULER - ERROR - LỖI KHI CHẠY src\module3_routing\08_ahp_weighting.py:
+2026-04-05 17:27:25,851 - INFO - B\u01af\u1edaC 08: TÍNH TOÁN CHI PHÍ MCDM T\u1ed0C \u0110\u1ed8 CAO (\u0110Ã TÍCH H\u1ee2P AHP)...
+2026-04-05 17:27:25,914 - INFO - \u0110ã nh\u1eadn r\u1ee7i ro t\u1eeb h\u1ec7 th\u1ed1ng AI: Ng\u1eadp 0.02% | S\u1ea1t l\u1edf 1.23%
+Traceback (most recent call last):
+  File "C:\Users\Acer\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'avg_slope'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\NCKH\GuardBaXat\Spatial-Intelligence\src\module3_routing\08_ahp_weighting.py", line 183, in <module>
+    apply_mcdm_to_enriched_graph()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\NCKH\GuardBaXat\Spatial-Intelligence\src\module3_routing\08_ahp_weighting.py", line 107, in apply_mcdm_to_enriched_graph
+    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+                            ~~^^^^^
+  File "C:\Users\Acer\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\Acer\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'avg_slope'
+
+2026-04-05 17:27:26,348 - SCHEDULER - INFO - KẾT THÚC CHU KỲ CẬP NHẬT
+2026-04-05 17:27:26,348 - SCHEDULER - INFO - Hệ thống Scheduler đã khởi động. Đang chờ đến giờ ...

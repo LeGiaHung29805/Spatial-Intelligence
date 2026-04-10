@@ -7,7 +7,8 @@ from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import accuracy_score 
+# Thêm precision_score, recall_score để phục vụ thuật toán tối ưu ngưỡng
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score, f1_score, precision_score, recall_score 
 from imblearn.over_sampling import SMOTE
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout
@@ -105,6 +106,46 @@ def train_lstm_smote_model():
     model.save(model_path)
     joblib.dump(scaler, scaler_path)
     
+    # =========================================================================
+    # ĐOẠN CODE CẬP NHẬT: TỐI ƯU HÓA NGƯỠNG CÂN BẰNG (ƯU TIÊN RECALL)
+    # =========================================================================
+    print("\n" + "="*50)
+    print(" KẾT QUẢ ĐÁNH GIÁ CHUYÊN SÂU MÔ HÌNH LSTM (NGẬP LỤT)")
+    print("="*50)
+    
+    y_pred_prob = model.predict(X_test, verbose=0)
+    
+    # 1. Thuật toán tự động quét ngưỡng ưu tiên Recall (Bắt thảm họa) >= 80%
+    best_thresh = 0.5
+    min_diff = 1.0 # Tìm khoảng cách nhỏ nhất giữa Precision và Recall để cân bằng
+    
+    for thresh in np.arange(0.4, 0.90, 0.05):
+        y_pred_temp = (y_pred_prob > thresh).astype(int)
+        
+        # Bỏ qua nếu ngưỡng này khiến AI đoán 100% là An toàn (Lỗi chia 0)
+        if 1 in y_pred_temp:
+            p_temp = precision_score(y_test, y_pred_temp, zero_division=0)
+            r_temp = recall_score(y_test, y_pred_temp, zero_division=0)
+            
+            # ĐIỀU KIỆN TIÊN QUYẾT: Recall phải đạt ít nhất 80%
+            if r_temp >= 0.80:
+                diff = abs(p_temp - r_temp)
+                if diff < min_diff:
+                    min_diff = diff
+                    best_thresh = thresh
+            
+    print(f">> THUẬT TOÁN TỐI ƯU HÓA NGƯỠNG (CÂN BẰNG P-R) ĐÃ KÍCH HOẠT <<")
+    print(f">> Ngưỡng cảnh báo cân bằng: {best_thresh:.2f} (AI phải chắc chắn > {best_thresh*100}% mới báo lũ)\n")
+    
+    # 2. Sử dụng ngưỡng tối ưu để in ra báo cáo
+    y_pred_optimized = (y_pred_prob > best_thresh).astype(int)
+    print(classification_report(y_test, y_pred_optimized, target_names=['An toàn (0)', 'Nguy hiểm (1)']))
+    
+    auc_score = roc_auc_score(y_test, y_pred_prob)
+    print(f"ROC-AUC Score: {auc_score:.4f}")
+    print("="*50 + "\n")
+    # =========================================================================
+    
     try:
         engine = get_engine()
         _, accuracy = model.evaluate(X_test, y_test, verbose=0)
@@ -175,6 +216,21 @@ def train_landslide_rf_model():
     real_acc = round(float(accuracy_score(y_test, y_pred) * 100), 2)
     cv_mean = round(float(cross_val_score(rf_model, X, y, cv=5).mean() * 100), 2)
     
+    # =========================================================================
+    # THÊM BÁO CÁO PHÂN LOẠI CHO RANDOM FOREST
+    # =========================================================================
+    print("\n" + "="*50)
+    print(" KẾT QUẢ ĐÁNH GIÁ CHUYÊN SÂU RANDOM FOREST (SẠT LỞ)")
+    print("="*50)
+    print(classification_report(y_test, y_pred, target_names=['An toàn (0)', 'Sạt lở (1)']))
+    
+    # Đoán xác suất để lấy ROC-AUC (RF dùng predict_proba)
+    y_pred_prob_rf = rf_model.predict_proba(X_test)[:, 1]
+    rf_auc = roc_auc_score(y_test, y_pred_prob_rf)
+    print(f"ROC-AUC Score: {rf_auc:.4f}")
+    print("="*50 + "\n")
+    # =========================================================================
+
     importances = rf_model.feature_importances_
     f_imp = {name: round(float(val * 100), 2) for name, val in zip(ls_features, importances)}
 

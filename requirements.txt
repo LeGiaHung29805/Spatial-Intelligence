@@ -31,3 +31,6 @@ imbalanced-learn
 schedule
 flask-cors
 flask
+uvicorn
+fastapi
+pydantic
