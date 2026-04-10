@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 
 DB_SETTINGS = {
     "user": "postgres",
-    "pass": "123456789",
+    "pass": "hieu040205",
     "host": "localhost",
     "port": "5432",
     "db": "GuardBatXat"
