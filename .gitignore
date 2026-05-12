@@ -15,3 +15,11 @@ cache/
 *.keras
 *.h5
 *.pkl
+".venv/" 
+"__pycache__/" 
+"*.log" 
+".idea/" 
+"scheduler.log" 
+"Get-ChildItem" 
+"mvnw.cmd" 
+"package-lock.json" 
