@@ -19,10 +19,14 @@ from pydantic import BaseModel
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[0] # Lưu ý: Chỉnh lại số lượng parents tùy theo vị trí file
 sys.path.append(str(PROJECT_ROOT))
 
-from src.CSDL.config.db_config import get_engine
+# Đảm bảo import đúng sau khi bạn đã cấu trúc lại thư mục bằng Git
+try:
+    from src.CSDL.config.db_config import get_engine
+except ImportError:
+    logger.error("Không tìm thấy db_config. Hãy kiểm tra lại PYTHONPATH hoặc cấu trúc thư mục.")
 
 # Khởi tạo ứng dụng FastAPI
 app = FastAPI(title="Bat Xat DSS AI API", version="1.0.0")
@@ -51,7 +55,7 @@ try:
         if 'cost_speed' in data:
             data['cost_speed'] = float(data['cost_speed'])
 except Exception as e:
-    logger.error(f"Không thể tải đồ thị. Lỗi: {e}")
+    logger.error(f"Không thể tải đồ thị tại {GRAPH_PATH}. Lỗi: {e}")
     sys.exit(1)
 
 node_ids = list(G.nodes)
@@ -71,7 +75,7 @@ def find_nearest_node(lat: float, lng: float):
     return node_ids[index]
 
 # ==========================================
-# ĐỊNH NGHĨA MODEL DỮ LIỆU ĐẦU VÀO (PYDANTIC)
+# ĐỊNH NGHƠI MODEL DỮ LIỆU ĐẦU VÀO
 # ==========================================
 class ShelterRequest(BaseModel):
     currentLat: float
@@ -128,12 +132,8 @@ def find_safe_shelter(req: ShelterRequest):
             result = conn.execute(query, {"f_level": current_flood_level})
             for row in result:
                 shelters.append({
-                    "id": row.id,
-                    "name": row.name,
-                    "lat": row.latitude,
-                    "lng": row.longitude,
-                    "max_capacity": row.max_capacity,
-                    "current_occupancy": row.current_occupancy
+                    "id": row.id, "name": row.name, "lat": row.latitude, "lng": row.longitude,
+                    "max_capacity": row.max_capacity, "current_occupancy": row.current_occupancy
                 })
 
         if not shelters:
@@ -144,9 +144,7 @@ def find_safe_shelter(req: ShelterRequest):
             end_node = find_nearest_node(shelter['lat'], shelter['lng'])
             if start_node == end_node:
                 raw_options.append({
-                    "destination": shelter,
-                    "route_coordinates": [[start_lat, start_lng]],
-                    "cost_value": 0
+                    "destination": shelter, "route_coordinates": [[start_lat, start_lng]], "cost_value": 0
                 })
                 continue
 
@@ -157,8 +155,7 @@ def find_safe_shelter(req: ShelterRequest):
 
                 raw_options.append({
                     "destination": {
-                        "id": shelter['id'], "name": shelter['name'],
-                        "lat": shelter['lat'], "lng": shelter['lng'],
+                        "id": shelter['id'], "name": shelter['name'], "lat": shelter['lat'], "lng": shelter['lng'],
                         "available_capacity": shelter['max_capacity'] - shelter['current_occupancy']
                     },
                     "route_coordinates": route_coordinates,
@@ -176,11 +173,7 @@ def find_safe_shelter(req: ShelterRequest):
                 unique_options.append(opt)
 
         top_3 = unique_options[:3]
-        return {
-            "status": "success",
-            "message": f"Tìm thấy {len(top_3)} điểm sơ tán.",
-            "options": top_3
-        }
+        return {"status": "success", "message": f"Tìm thấy {len(top_3)} điểm sơ tán.", "options": top_3}
     except Exception as e:
         logger.error(f"Lỗi find-safe-shelter: {e}")
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
@@ -210,16 +203,7 @@ def find_safe_route(req: SafeRouteRequest):
         except nx.NetworkXNoPath:
             return JSONResponse(status_code=404, content={"status": "fail", "message": "Đích đến bị cô lập."})
     except Exception as e:
-<<<<<<< HEAD
         logger.error(f"Lỗi API safe-routing: {e}")
-        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
-    
-    # Thêm API triển khai
-    
-if __name__ == '__main__':
-    # FastAPI chạy qua uvicorn thay vì app.run
-=======
-        logger.error(f"Lỗi safe-routing: {e}")
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 # ==========================================
@@ -257,5 +241,5 @@ def admin_compare_routing(req: AdminRouteRequest):
 # CHẠY SERVER
 # ==========================================
 if __name__ == '__main__':
->>>>>>> a266b34b3676140ab1f326344a283951507b55b3
+    # Đảm bảo tên file của bạn là routing_nearest.py, nếu không hãy đổi lại chuỗi bên dưới
     uvicorn.run("routing_nearest:app", host="0.0.0.0", port=5000, reload=True)
