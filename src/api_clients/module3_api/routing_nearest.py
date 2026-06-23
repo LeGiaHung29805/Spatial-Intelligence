@@ -19,8 +19,12 @@ from pydantic import BaseModel
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[0] # Lưu ý: Chỉnh lại số lượng parents tùy theo vị trí file
+# Lùi lại 3 cấp: module3_api -> api_clients -> src -> Spatial-Intelligence
+PROJECT_ROOT = Path(__file__).resolve().parents[3] 
 sys.path.append(str(PROJECT_ROOT))
+
+# Đảm bảo đường dẫn file đồ thị trỏ đúng về root/models
+GRAPH_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 
 # Đảm bảo import đúng sau khi bạn đã cấu trúc lại thư mục bằng Git
 try:
