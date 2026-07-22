@@ -31,7 +31,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 GRAPH_PATH = os.path.join(PROJECT_ROOT, "models", "baxat_mcdm_final.graphml")
 
 # Database connection (từ db_config.py)
-DB_URL = "postgresql://postgres:tung2005@localhost:5432/guardbatxat"
+DB_URL = "postgresql://postgres:hieu040205@localhost:5432/GuardBatXat"
 
 def get_db_engine():
     """Khởi tạo engine kết nối database"""
@@ -269,24 +269,85 @@ def safe_routing():
 @app.route('/api/v1/ai/admin-routing', methods=['POST'])
 def admin_routing():
     """
-    So sánh 3 lộ trình cho admin (shortest, safest, balanced)
+    So sánh 3 lộ trình cho admin (shortest, safest, rescue)
     """
     try:
+        if not graph:
+            return jsonify({
+                "status": "error",
+                "message": "Graph mạng lưới không được nạp."
+            }), 500
+            
         data = request.get_json()
+        start_lat = data.get('startLat')
+        start_lng = data.get('startLng')
+        end_lat = data.get('endLat')
+        end_lng = data.get('endLng')
         
-        logger.info("Admin so sánh 3 lộ trình")
+        logger.info(f"Admin so sánh 3 lộ trình từ [{start_lat}, {start_lng}] đến [{end_lat}, {end_lng}]")
         
+        G = graph.copy()
+        for u, v, k, data_edge in G.edges(keys=True, data=True):
+            for attr in ['cost_safety', 'cost_speed', 'length_m', 'avg_slope']:
+                if attr in data_edge:
+                    try:
+                        data_edge[attr] = float(data_edge[attr])
+                    except (ValueError, TypeError):
+                        data_edge[attr] = 0.0
+                        
+        orig_node = ox.distance.nearest_nodes(G, X=start_lng, Y=start_lat)
+        dest_node = ox.distance.nearest_nodes(G, X=end_lng, Y=end_lat)
+        
+        def get_path_coords(strategy):
+            try:
+                route = nx.shortest_path(G, orig_node, dest_node, weight=strategy)
+                route_coords = []
+                for i in range(len(route) - 1):
+                    u = route[i]
+                    v = route[i+1]
+                    edge_data = G.get_edge_data(u, v)[0]
+                    if 'geometry' in edge_data:
+                        try:
+                            geom = edge_data['geometry']
+                            if isinstance(geom, str):
+                                from shapely import wkt
+                                geom = wkt.loads(geom)
+                            coords = list(geom.coords)
+                            route_coords.extend([[x, y] for y, x in coords])
+                        except:
+                            node_u, node_v = G.nodes[u], G.nodes[v]
+                            route_coords.extend([[node_u['y'], node_u['x']], [node_v['y'], node_v['x']]])
+                    else:
+                        node_u, node_v = G.nodes[u], G.nodes[v]
+                        route_coords.extend([[node_u['y'], node_u['x']], [node_v['y'], node_v['x']]])
+                return route_coords
+            except nx.NetworkXNoPath:
+                return []
+                
+        shortest_path = get_path_coords('length_m')
+        safety_path = get_path_coords('cost_safety')
+        rescue_path = get_path_coords('cost_speed')
+        
+        # Nếu cả 3 đều không tìm thấy đường đi (do bị cô lập)
+        if not shortest_path and not safety_path and not rescue_path:
+            return jsonify({
+                "status": "error",
+                "message": "Không tìm thấy đường đi giữa 2 điểm (mạng lưới bị cô lập)"
+            }), 404
+            
         return jsonify({
             "status": "success",
             "data": {
-                "shortest": [[10.0, 21.5], [10.001, 21.501], [10.002, 21.502]],
-                "safety": [[10.0, 21.5], [10.0005, 21.5005], [10.001, 21.501], [10.002, 21.502]],
-                "balanced": [[10.0, 21.5], [10.0008, 21.5008], [10.002, 21.502]]
+                "shortest": shortest_path,
+                "safety": safety_path,
+                "rescue": rescue_path
             }
         })
         
     except Exception as e:
         logger.error(f"Lỗi admin routing: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "status": "error",
             "message": f"Lỗi hệ thống: {str(e)}"

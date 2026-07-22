@@ -58,6 +58,8 @@ try:
             data['cost_safety'] = float(data['cost_safety'])
         if 'cost_speed' in data:
             data['cost_speed'] = float(data['cost_speed'])
+        if 'length' in data:
+            data['length'] = float(data['length'])
 except Exception as e:
     logger.error(f"Không thể tải đồ thị tại {GRAPH_PATH}. Lỗi: {e}")
     sys.exit(1)
@@ -77,6 +79,68 @@ def find_nearest_node(lat: float, lng: float):
     """Tìm ID của node gần với tọa độ GPS nhất"""
     distance, index = kdtree.query([lat, lng])
     return node_ids[index]
+
+def get_path_coords(path):
+    """Trích xuất tọa độ chi tiết từ hình học cạnh (geometry) bám sát lòng đường thực tế"""
+    if not path:
+        return []
+    route_coords = []
+    
+    # Trường hợp suy biến (chỉ có 1 điểm)
+    if len(path) == 1:
+        return [[float(G.nodes[path[0]]['y']), float(G.nodes[path[0]]['x'])]]
+        
+    for i in range(len(path) - 1):
+        u = path[i]
+        v = path[i+1]
+        edge_data_dict = G.get_edge_data(u, v)
+        edge_data = {}
+        if edge_data_dict:
+            edge_data = next(iter(edge_data_dict.values()))
+            
+        if 'geometry' in edge_data and edge_data['geometry']:
+            geom = edge_data['geometry']
+            if isinstance(geom, str):
+                try:
+                    from shapely import wkt
+                    geom = wkt.loads(geom)
+                except Exception as e:
+                    logger.warning(f"Không thể tải geometry WKT: {e}")
+                    geom = None
+            
+            if geom:
+                geom_coords = list(geom.coords)
+                # Xác định hướng: kiểm tra xem điểm đầu hay điểm cuối của geometry gần u hơn
+                u_x = float(G.nodes[u]['x'])
+                u_y = float(G.nodes[u]['y'])
+                first_pt = geom_coords[0]
+                last_pt = geom_coords[-1]
+                dist_first = (first_pt[0] - u_x)**2 + (first_pt[1] - u_y)**2
+                dist_last = (last_pt[0] - u_x)**2 + (last_pt[1] - u_y)**2
+                
+                # Nếu điểm cuối gần u hơn điểm đầu -> geometry bị ngược hướng đi, cần đảo lại
+                if dist_last < dist_first:
+                    geom_coords.reverse()
+                    
+                lat_lng_coords = [[float(pt[1]), float(pt[0])] for pt in geom_coords]
+                if not route_coords:
+                    route_coords.extend(lat_lng_coords)
+                else:
+                    route_coords.extend(lat_lng_coords[1:])
+            else:
+                pt_u = [float(G.nodes[u]['y']), float(G.nodes[u]['x'])]
+                pt_v = [float(G.nodes[v]['y']), float(G.nodes[v]['x'])]
+                if not route_coords:
+                    route_coords.append(pt_u)
+                route_coords.append(pt_v)
+        else:
+            pt_u = [float(G.nodes[u]['y']), float(G.nodes[u]['x'])]
+            pt_v = [float(G.nodes[v]['y']), float(G.nodes[v]['x'])]
+            if not route_coords:
+                route_coords.append(pt_u)
+            route_coords.append(pt_v)
+            
+    return route_coords
 
 # ==========================================
 # ĐỊNH NGHƠI MODEL DỮ LIỆU ĐẦU VÀO
@@ -155,7 +219,11 @@ def find_safe_shelter(req: ShelterRequest):
             try:
                 route_cost = nx.shortest_path_length(G, source=start_node, target=end_node, weight=weight_attr)
                 best_route_nodes = nx.shortest_path(G, source=start_node, target=end_node, weight=weight_attr)
-                route_coordinates = [[float(G.nodes[n]['y']), float(G.nodes[n]['x'])] for n in best_route_nodes]
+                
+                # Trích xuất geometry bám đường cong mềm mại
+                path_coords = get_path_coords(best_route_nodes)
+                # Nối liền mạch từ vị trí GPS người dùng
+                route_coordinates = [[start_lat, start_lng]] + path_coords + [[shelter['lat'], shelter['lng']]]
 
                 raw_options.append({
                     "destination": {
@@ -197,7 +265,11 @@ def find_safe_route(req: SafeRouteRequest):
         try:
             route_nodes = nx.shortest_path(G, source=start_node, target=end_node, weight='cost_safety')
             total_cost = nx.shortest_path_length(G, source=start_node, target=end_node, weight='cost_safety')
-            route_coordinates = [[float(G.nodes[n]['y']), float(G.nodes[n]['x'])] for n in route_nodes]
+            
+            # Trích xuất geometry bám đường cong mềm mại
+            path_coords = get_path_coords(route_nodes)
+            # Nối liên tiếp từ Marker A -> Lộ trình -> Marker B
+            route_coordinates = [[req.startLat, req.startLng]] + path_coords + [[req.endLat, req.endLng]]
 
             return {
                 "status": "success",
@@ -225,10 +297,12 @@ def admin_compare_routing(req: AdminRouteRequest):
         for key, weight_attr in scenarios.items():
             try:
                 path = nx.shortest_path(G, source=start_node, target=end_node, weight=weight_attr)
-                coords = [[req.startLat, req.startLng]]
-                for node in path:
-                    coords.append([float(G.nodes[node]['y']), float(G.nodes[node]['x'])])
-                coords.append([req.endLat, req.endLng])
+                
+                # Gọi helper trích xuất geometry bám đường thực tế
+                path_coords = get_path_coords(path)
+                
+                # Nối liên tiếp từ Marker A -> Lộ trình -> Marker B
+                coords = [[req.startLat, req.startLng]] + path_coords + [[req.endLat, req.endLng]]
                 results[key] = coords
             except nx.NetworkXNoPath:
                 results[key] = [] 
