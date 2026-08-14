@@ -17,6 +17,9 @@ from sqlalchemy import text
 import sys
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 csdl_path = os.path.abspath(os.path.join(current_dir, '..', 'CSDL'))
 if csdl_path not in sys.path:
     sys.path.append(csdl_path)
@@ -26,6 +29,13 @@ try:
 except ImportError:
     print("Lỗi: Không tìm thấy module cấu hình CSDL!")
     sys.exit(1)
+
+from src.module2_prediction.prediction_features import (
+    FLOOD_FEATURES,
+    LANDSLIDE_FEATURES,
+    TIME_STEPS,
+    prepare_flood_feature_frame,
+)
 
 warnings.filterwarnings('ignore')
 
@@ -51,29 +61,18 @@ def train_lstm_smote_model():
         return
         
     df = pd.read_csv(data_path)
-    df['datetime'] = pd.to_datetime(df['datetime'])
-    df = df.sort_values('datetime')
-
-    for col in ['precip_3d_Y_TY', 'interaction_risk_Y_TY']:
-        df[f'{col}_lag1'] = df[col].shift(1).fillna(0)
-    
-    lstm_features = [
-        'precip_BAT_XAT', 'precip_3d_BAT_XAT', 'precip_5d_BAT_XAT', 'interaction_risk_BAT_XAT',
-        'precip_3d_Y_TY_lag1', 'precip_5d_Y_TY', 'interaction_risk_Y_TY_lag1', 'basin_precip',
-        'sin_season', 'cos_season' 
-    ]
-    df = df.dropna(subset=lstm_features)
+    df = prepare_flood_feature_frame(df)
+    df = df.dropna(subset=FLOOD_FEATURES)
 
     if 'water_level' not in df.columns:
         df['water_level'] = df['basin_precip'] 
     
     y_target = ((df['water_level'] > df['water_level'].quantile(0.92)) | (df.get('is_event', 0) == 1)).astype(int)
-    X_raw = df[lstm_features]
+    X_raw = df[FLOOD_FEATURES]
 
     scaler = MinMaxScaler()
     X_scaled = pd.DataFrame(scaler.fit_transform(X_raw), columns=X_raw.columns)
     
-    TIME_STEPS = 5 
     X_seq, y_seq = create_sequences(X_scaled, y_target, TIME_STEPS)
 
     split_idx = int(len(X_seq) * 0.8)
@@ -173,7 +172,7 @@ def train_landslide_rf_model():
     if not os.path.exists(ls_path): return
 
     df = pd.read_csv(ls_path)
-    ls_features = ['Slope', 'Elevation', 'Dist_to_Water', 'precip_3d_BAT_XAT', 'soil_BAT_XAT']
+    ls_features = LANDSLIDE_FEATURES
     
     # TIÊM KỊCH BẢN MƯA LỚN
     print("Đang mô phỏng tương tác Địa hình - Thời tiết...")
@@ -249,15 +248,15 @@ def train_landslide_rf_model():
             # Tắt các model sạt lở cũ
             conn.execute(text("UPDATE batxat_model_registry SET is_active = FALSE WHERE model_target = 'LANDSLIDE'"))
             
-            # Insert model mới với đủ 5 trọng số
+            # Insert model mới với đủ 6 trọng số
             conn.execute(text("""
                 INSERT INTO batxat_model_registry 
                 (model_name, algorithm, model_target, accuracy_test, cv_score_mean, 
                  feat_imp_slope, feat_imp_elevation, feat_imp_water, 
-                 feat_imp_precip, feat_imp_soil, 
+                 feat_imp_precip, feat_imp_soil, feat_imp_landcover,
                  model_path, scaler_path, is_active)
                 VALUES (:name, :algo, :target, :acc, :cv, 
-                        :f_s, :f_e, :f_w, :f_p, :f_soil, 
+                        :f_s, :f_e, :f_w, :f_p, :f_soil, :f_landcover,
                         :path, :s_path, TRUE)
             """), {
                 "name": f"RF_Smart_Fusion_{timestamp_str}",
@@ -269,11 +268,12 @@ def train_landslide_rf_model():
                 "f_e": f_imp.get('Elevation', 0), 
                 "f_w": f_imp.get('Dist_to_Water', 0),
                 "f_p": f_imp.get('precip_3d_BAT_XAT', 0),  
-                "f_soil": f_imp.get('soil_BAT_XAT', 0),    
+                "f_soil": f_imp.get('soil_BAT_XAT', 0),
+                "f_landcover": f_imp.get('Landcover', 0),
                 "path": rf_save_path, 
                 "s_path": "N/A"
             })
-        print(f"Đã lưu bộ não AI cùng toàn bộ 5 trọng số vật lý vào CSDL!")
+        print(f"Đã lưu bộ não AI cùng toàn bộ 6 trọng số vật lý vào CSDL!")
     except Exception as e:
         print(f"Lỗi ghi CSDL: {e}")
 

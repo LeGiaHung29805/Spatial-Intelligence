@@ -37,7 +37,7 @@ def train_landslide_model_enhanced():
 
     df = pd.read_csv(data_path)
     
-    features = ['Slope', 'Elevation', 'Dist_to_Water', 'precip_3d_BAT_XAT', 'soil_BAT_XAT']
+    features = ['Slope', 'Elevation', 'Dist_to_Water', 'precip_3d_BAT_XAT', 'soil_BAT_XAT', 'Landcover']
 
     if 'precip_3d_BAT_XAT' not in df.columns:
         print(" Đang tiêm kịch bản Mưa và Đất vào dữ liệu huấn luyện...")
@@ -64,7 +64,7 @@ def train_landslide_model_enhanced():
     print(f"Đã lưu Thước đo: {scaler_path}")
 
     #HUẤN LUYỆN VÀ LƯU MODEL
-    print("Đang huấn luyện Random Forest (5 features)...")
+    print("Đang huấn luyện Random Forest (6 features)...")
     rf_model = RandomForestClassifier(n_estimators=200, max_depth=8, random_state=42)
     rf_model.fit(X_train_scaled, y_train)
 
