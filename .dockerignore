@@ -1,0 +1,20 @@
+.git
+.github
+.idea
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.log
+cache
+results
+tests
+data
+
+# Package only the active leader artifacts needed by the runtime.
+models/*
+!models/baxat_mcdm_final.graphml
+!models/lstm_flood_v1_20260803_2320.keras
+!models/scaler_lstm_v1_20260803_2320.pkl
+!models/rf_dynamic_landslide_model.pkl

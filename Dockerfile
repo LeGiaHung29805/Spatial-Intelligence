@@ -1,5 +1,5 @@
 # Sử dụng Python bản slim để nhẹ, nhưng cần cài thêm thư viện GIS hệ thống
-FROM python:3.10-slim
+FROM python:3.13-slim
 
 # Cài đặt các thư viện hệ thống cần thiết cho GIS (GDAL, PROJ, GEOS)
 RUN apt-get update && apt-get install -y \
@@ -15,12 +15,12 @@ ENV C_INCLUDE_PATH=/usr/include/gdal
 
 WORKDIR /app
 
-# Copy requirements và cài đặt
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Chỉ cài dependency cần cho API và inference trong production image.
+COPY requirements-runtime.txt .
+RUN pip install --no-cache-dir -r requirements-runtime.txt
 
 # Copy toàn bộ code vào container
 COPY . .
 
 # Mặc định container sẽ chạy lệnh này (bạn có thể đổi thành script dự báo Bước 06)
-CMD ["python", "src/module2/06_inference.py"]
+CMD ["uvicorn", "src.api_clients.module3_api.routing_nearest:app", "--host", "0.0.0.0", "--port", "5000"]

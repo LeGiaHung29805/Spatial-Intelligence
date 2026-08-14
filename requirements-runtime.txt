@@ -1,0 +1,17 @@
+# Python 3.13 runtime for routing, model validation, and integrated prediction.
+fastapi
+uvicorn
+pydantic
+numpy
+pandas
+scipy
+networkx
+osmnx
+requests
+sqlalchemy
+psycopg2-binary
+scikit-learn==1.8.0
+sklearn-compat==0.1.5
+joblib==1.5.3
+tensorflow==2.20.0
+keras==3.13.2
