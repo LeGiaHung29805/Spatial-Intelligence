@@ -2,6 +2,7 @@ import osmnx as ox
 import networkx as nx
 import numpy as np
 import logging
+import os
 import sys
 
 from pathlib import Path
@@ -29,20 +30,52 @@ GRAPH_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 # Đảm bảo import đúng sau khi bạn đã cấu trúc lại thư mục bằng Git
 try:
     from src.CSDL.config.db_config import get_engine
+    from src.utils.model_validation import validate_model_files
 except ImportError:
     logger.error("Không tìm thấy db_config. Hãy kiểm tra lại PYTHONPATH hoặc cấu trúc thư mục.")
 
 # Khởi tạo ứng dụng FastAPI
 app = FastAPI(title="Bat Xat DSS AI API", version="1.0.0")
 
+
+class ModelValidationRequest(BaseModel):
+    modelPath: str
+    scalerPath: str | None = None
+    modelTarget: str
+
 # Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv("AI_CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+        if origin.strip()
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get('/api/v1/health')
+def health_check():
+    return {"status": "ok"}
+
+
+@app.post('/api/v1/ai/models/validate')
+def validate_model(request: ModelValidationRequest):
+    try:
+        return validate_model_files(
+            request.modelTarget,
+            request.modelPath,
+            request.scalerPath,
+        )
+    except Exception as exc:
+        logger.warning("Model validation failed: %s", exc)
+        return JSONResponse(
+            status_code=422,
+            content={"valid": False, "message": str(exc)},
+        )
 
 GRAPH_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 
