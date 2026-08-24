@@ -27,11 +27,14 @@ GRAPH_IN_PATH = PROJECT_ROOT / "models" / "baxat_local_graph.graphml"
 GRAPH_OUT_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 
 
-def get_ahp_weights(strategy: str = "safety") -> dict:
-    """
-    Ma trận so sánh cặp AHP 6x6 chuẩn hóa.
-    Các tiêu chí: 1.Khoảng cách | 2.Ngập | 3.Sạt lở | 4.Hạng đường | 5.Cầu | 6.Cộng đồng
-    """
+WEIGHT_COLUMNS = (
+    'w_distance', 'w_flood', 'w_landslide',
+    'w_capacity', 'w_bridge', 'w_report'
+)
+
+
+def get_default_ahp_weights(strategy: str) -> dict:
+    """Trọng số khởi tạo khi cơ sở dữ liệu chưa có cấu hình cho kịch bản."""
     if strategy == "safety":
         matrix = np.array([
             [1,     1/7,    1/9,    1/5,    1/6,    1/5],
@@ -53,15 +56,30 @@ def get_ahp_weights(strategy: str = "safety") -> dict:
         
     weights = np.mean(matrix / np.sum(matrix, axis=0), axis=1)
     
-    # Trả về dạng Dictionary giúp công thức bên dưới rõ ràng hơn
-    return {
-        'w_distance': float(weights[0]),
-        'w_flood': float(weights[1]),
-        'w_landslide': float(weights[2]),
-        'w_capacity': float(weights[3]),
-        'w_bridge': float(weights[4]),
-        'w_report': float(weights[5])
-    }
+    return dict(zip(WEIGHT_COLUMNS, map(float, weights)))
+
+
+def get_ahp_weights(engine, strategy: str) -> dict:
+    """Lấy trọng số do admin cấu hình; chỉ dùng ma trận mặc định để bootstrap."""
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(text("""
+                SELECT w_distance, w_flood, w_landslide,
+                       w_capacity, w_bridge, w_report
+                FROM batxat_ahp_weights
+                WHERE strategy_name = :strategy
+            """), {"strategy": strategy}).mappings().first()
+
+        if row is not None:
+            weights = {column: float(row[column]) for column in WEIGHT_COLUMNS}
+            if all(0 <= value <= 1 for value in weights.values()) and abs(sum(weights.values()) - 1) <= 0.001:
+                logger.info("Dùng trọng số AHP do admin cấu hình cho kịch bản %s", strategy)
+                return weights
+            logger.warning("Trọng số AHP trong DB không hợp lệ cho %s; dùng giá trị bootstrap", strategy)
+    except Exception as error:
+        logger.warning("Không đọc được trọng số AHP từ DB cho %s: %s", strategy, error)
+
+    return get_default_ahp_weights(strategy)
 
 
 def get_latest_ai_risks(engine) -> tuple:
@@ -107,8 +125,8 @@ def apply_mcdm_to_enriched_graph() -> bool:
         df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
     # LẤY TRỌNG SỐ AHP
-    w_s = get_ahp_weights("safety")
-    w_sp = get_ahp_weights("rescue")
+    w_s = get_ahp_weights(engine, "safety")
+    w_sp = get_ahp_weights(engine, "rescue")
 
     # TÍNH TOÁN CHI PHÍ TỔNG HỢP (Cost Matrix)
     logger.info("Đang áp dụng công thức chi phí đa tiêu chí (MCDM)...")
@@ -133,13 +151,12 @@ def apply_mcdm_to_enriched_graph() -> bool:
             conn.execute(text("ALTER TABLE batxat_road_edges ADD COLUMN IF NOT EXISTS cost_safety NUMERIC;"))
             conn.execute(text("ALTER TABLE batxat_road_edges ADD COLUMN IF NOT EXISTS cost_speed NUMERIC;"))
             
-            # Lưu trọng số AHP để Backend Spring Boot biết và hiển thị
+            # Chỉ khởi tạo cấu hình mặc định khi DB chưa có; không ghi đè thay đổi của admin.
             for strat, w in [("safety", w_s), ("rescue", w_sp)]:
                 conn.execute(text("""
                     INSERT INTO batxat_ahp_weights (strategy_name, w_distance, w_flood, w_landslide, w_capacity, w_bridge, w_report)
                     VALUES (:n, :w1, :w2, :w3, :w4, :w5, :w6)
-                    ON CONFLICT (strategy_name) DO UPDATE SET 
-                    w_distance=EXCLUDED.w_distance, w_flood=EXCLUDED.w_flood, w_landslide=EXCLUDED.w_landslide;
+                    ON CONFLICT (strategy_name) DO NOTHING;
                 """), {"n": strat, "w1": w['w_distance'], "w2": w['w_flood'], "w3": w['w_landslide'], 
                        "w4": w['w_capacity'], "w5": w['w_bridge'], "w6": w['w_report']})
 
