@@ -4,12 +4,15 @@ import numpy as np
 import logging
 import os
 import sys
+import subprocess
+from dataclasses import dataclass
+from threading import Lock
 
 from pathlib import Path
 from scipy.spatial import KDTree
 from sqlalchemy import text
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -30,6 +33,7 @@ GRAPH_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 # Đảm bảo import đúng sau khi bạn đã cấu trúc lại thư mục bằng Git
 try:
     from src.CSDL.config.db_config import get_engine
+    from src.api_clients.internal_auth import has_valid_internal_token
     from src.utils.model_validation import validate_model_files
 except ImportError:
     logger.error("Không tìm thấy db_config. Hãy kiểm tra lại PYTHONPATH hoặc cấu trúc thư mục.")
@@ -77,56 +81,98 @@ def validate_model(request: ModelValidationRequest):
             content={"valid": False, "message": str(exc)},
         )
 
-GRAPH_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 
-# ==========================================
-# KHỞI TẠO DỮ LIỆU ĐỒ THỊ
-# ==========================================
-logger.info("Đang tải đồ thị MCDM bằng OSMnx...")
-try:
-    G = ox.load_graphml(GRAPH_PATH)
-    G = G.to_undirected()
-    for u, v, key, data in G.edges(keys=True, data=True):
+def rebuild_routing_graph():
+    global ROUTING_STATE
+    try:
+        result = subprocess.run(
+            [sys.executable, str(REBUILD_SCRIPT_PATH)],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        if result.returncode != 0:
+            logger.error("Không thể rebuild routing graph: %s", result.stderr)
+            return
+        ROUTING_STATE = load_routing_graph_state()
+        logger.info("Đã reload routing graph sau khi cập nhật AHP.")
+    except Exception as error:
+        logger.exception("Lỗi rebuild routing graph: %s", error)
+    finally:
+        rebuild_lock.release()
+
+
+@app.post('/api/v1/ai/internal/rebuild-routing', status_code=status.HTTP_202_ACCEPTED)
+def request_routing_rebuild(
+    background_tasks: BackgroundTasks,
+    internal_api_token: str | None = Header(default=None, alias="X-Internal-Api-Token"),
+):
+    if not has_valid_internal_token(INTERNAL_API_TOKEN, internal_api_token):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid internal API token")
+    if not rebuild_lock.acquire(blocking=False):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Routing rebuild is already running")
+
+    background_tasks.add_task(rebuild_routing_graph)
+    return {"accepted": True}
+
+GRAPH_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
+REBUILD_SCRIPT_PATH = PROJECT_ROOT / "src" / "module3_routing" / "08_ahp_weighting.py"
+INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "")
+rebuild_lock = Lock()
+
+@dataclass(frozen=True)
+class RoutingGraphState:
+    graph: nx.MultiGraph
+    node_ids: list
+    kdtree: KDTree
+
+
+def load_routing_graph_state() -> RoutingGraphState:
+    logger.info("Đang tải đồ thị MCDM bằng OSMnx...")
+    graph = ox.load_graphml(GRAPH_PATH).to_undirected()
+    for u, v, key, data in graph.edges(keys=True, data=True):
         if 'cost_safety' in data:
             data['cost_safety'] = float(data['cost_safety'])
         if 'cost_speed' in data:
             data['cost_speed'] = float(data['cost_speed'])
         if 'length' in data:
             data['length'] = float(data['length'])
+    node_ids = list(graph.nodes)
+    node_coords = [
+        [float(data.get('y', 0)), float(data.get('x', 0))]
+        for _, data in graph.nodes(data=True)
+    ]
+    logger.info("Đã tải xong %s nodes và tạo KDTree thành công!", len(node_ids))
+    return RoutingGraphState(graph, node_ids, KDTree(node_coords))
+
+
+try:
+    ROUTING_STATE = load_routing_graph_state()
 except Exception as e:
     logger.error(f"Không thể tải đồ thị tại {GRAPH_PATH}. Lỗi: {e}")
     sys.exit(1)
 
-node_ids = list(G.nodes)
-node_coords = []
-
-for node, data in G.nodes(data=True):
-    lat = float(data.get('y', 0))
-    lng = float(data.get('x', 0))
-    node_coords.append([lat, lng])
-
-kdtree = KDTree(node_coords)
-logger.info(f"Đã tải xong {len(node_ids)} nodes và tạo KDTree thành công!")
-
-def find_nearest_node(lat: float, lng: float):
+def find_nearest_node(lat: float, lng: float, routing_state: RoutingGraphState):
     """Tìm ID của node gần với tọa độ GPS nhất"""
-    distance, index = kdtree.query([lat, lng])
-    return node_ids[index]
+    _, index = routing_state.kdtree.query([lat, lng])
+    return routing_state.node_ids[index]
 
-def get_path_coords(path):
+def get_path_coords(path, routing_state: RoutingGraphState):
     """Trích xuất tọa độ chi tiết từ hình học cạnh (geometry) bám sát lòng đường thực tế"""
+    graph = routing_state.graph
     if not path:
         return []
     route_coords = []
     
     # Trường hợp suy biến (chỉ có 1 điểm)
     if len(path) == 1:
-        return [[float(G.nodes[path[0]]['y']), float(G.nodes[path[0]]['x'])]]
+        return [[float(graph.nodes[path[0]]['y']), float(graph.nodes[path[0]]['x'])]]
         
     for i in range(len(path) - 1):
         u = path[i]
         v = path[i+1]
-        edge_data_dict = G.get_edge_data(u, v)
+        edge_data_dict = graph.get_edge_data(u, v)
         edge_data = {}
         if edge_data_dict:
             edge_data = next(iter(edge_data_dict.values()))
@@ -144,8 +190,8 @@ def get_path_coords(path):
             if geom:
                 geom_coords = list(geom.coords)
                 # Xác định hướng: kiểm tra xem điểm đầu hay điểm cuối của geometry gần u hơn
-                u_x = float(G.nodes[u]['x'])
-                u_y = float(G.nodes[u]['y'])
+                u_x = float(graph.nodes[u]['x'])
+                u_y = float(graph.nodes[u]['y'])
                 first_pt = geom_coords[0]
                 last_pt = geom_coords[-1]
                 dist_first = (first_pt[0] - u_x)**2 + (first_pt[1] - u_y)**2
@@ -161,14 +207,14 @@ def get_path_coords(path):
                 else:
                     route_coords.extend(lat_lng_coords[1:])
             else:
-                pt_u = [float(G.nodes[u]['y']), float(G.nodes[u]['x'])]
-                pt_v = [float(G.nodes[v]['y']), float(G.nodes[v]['x'])]
+                pt_u = [float(graph.nodes[u]['y']), float(graph.nodes[u]['x'])]
+                pt_v = [float(graph.nodes[v]['y']), float(graph.nodes[v]['x'])]
                 if not route_coords:
                     route_coords.append(pt_u)
                 route_coords.append(pt_v)
         else:
-            pt_u = [float(G.nodes[u]['y']), float(G.nodes[u]['x'])]
-            pt_v = [float(G.nodes[v]['y']), float(G.nodes[v]['x'])]
+            pt_u = [float(graph.nodes[u]['y']), float(graph.nodes[u]['x'])]
+            pt_v = [float(graph.nodes[v]['y']), float(graph.nodes[v]['x'])]
             if not route_coords:
                 route_coords.append(pt_u)
             route_coords.append(pt_v)
@@ -201,12 +247,13 @@ class AdminRouteRequest(BaseModel):
 @app.post('/api/v1/ai/find-safe-shelter')
 def find_safe_shelter(req: ShelterRequest):
     try:
+        routing_state = ROUTING_STATE
         start_lat = req.currentLat
         start_lng = req.currentLng
         strategy = req.strategy 
         weight_attr = 'cost_speed' if strategy == 'rescue' else 'cost_safety'
 
-        start_node = find_nearest_node(start_lat, start_lng)
+        start_node = find_nearest_node(start_lat, start_lng, routing_state)
         engine = get_engine()
         shelters = []
         
@@ -242,7 +289,7 @@ def find_safe_shelter(req: ShelterRequest):
 
         raw_options = []
         for shelter in shelters:
-            end_node = find_nearest_node(shelter['lat'], shelter['lng'])
+            end_node = find_nearest_node(shelter['lat'], shelter['lng'], routing_state)
             if start_node == end_node:
                 raw_options.append({
                     "destination": shelter, "route_coordinates": [[start_lat, start_lng]], "cost_value": 0
@@ -250,11 +297,11 @@ def find_safe_shelter(req: ShelterRequest):
                 continue
 
             try:
-                route_cost = nx.shortest_path_length(G, source=start_node, target=end_node, weight=weight_attr)
-                best_route_nodes = nx.shortest_path(G, source=start_node, target=end_node, weight=weight_attr)
+                route_cost = nx.shortest_path_length(routing_state.graph, source=start_node, target=end_node, weight=weight_attr)
+                best_route_nodes = nx.shortest_path(routing_state.graph, source=start_node, target=end_node, weight=weight_attr)
                 
                 # Trích xuất geometry bám đường cong mềm mại
-                path_coords = get_path_coords(best_route_nodes)
+                path_coords = get_path_coords(best_route_nodes, routing_state)
                 # Nối liền mạch từ vị trí GPS người dùng
                 route_coordinates = [[start_lat, start_lng]] + path_coords + [[shelter['lat'], shelter['lng']]]
 
@@ -289,18 +336,19 @@ def find_safe_shelter(req: ShelterRequest):
 @app.post('/api/v1/ai/safe-routing')
 def find_safe_route(req: SafeRouteRequest):
     try:
-        start_node = find_nearest_node(req.startLat, req.startLng)
-        end_node = find_nearest_node(req.endLat, req.endLng)
+        routing_state = ROUTING_STATE
+        start_node = find_nearest_node(req.startLat, req.startLng, routing_state)
+        end_node = find_nearest_node(req.endLat, req.endLng, routing_state)
 
         if start_node == end_node:
             return {"status": "success", "message": "Bạn đang ở đích.", "route_coordinates": []}
 
         try:
-            route_nodes = nx.shortest_path(G, source=start_node, target=end_node, weight='cost_safety')
-            total_cost = nx.shortest_path_length(G, source=start_node, target=end_node, weight='cost_safety')
+            route_nodes = nx.shortest_path(routing_state.graph, source=start_node, target=end_node, weight='cost_safety')
+            total_cost = nx.shortest_path_length(routing_state.graph, source=start_node, target=end_node, weight='cost_safety')
             
             # Trích xuất geometry bám đường cong mềm mại
-            path_coords = get_path_coords(route_nodes)
+            path_coords = get_path_coords(route_nodes, routing_state)
             # Nối liên tiếp từ Marker A -> Lộ trình -> Marker B
             route_coordinates = [[req.startLat, req.startLng]] + path_coords + [[req.endLat, req.endLng]]
 
@@ -321,18 +369,19 @@ def find_safe_route(req: SafeRouteRequest):
 @app.post('/api/v1/ai/admin-routing')
 def admin_compare_routing(req: AdminRouteRequest):
     try:
-        start_node = find_nearest_node(req.startLat, req.startLng)
-        end_node = find_nearest_node(req.endLat, req.endLng)
+        routing_state = ROUTING_STATE
+        start_node = find_nearest_node(req.startLat, req.startLng, routing_state)
+        end_node = find_nearest_node(req.endLat, req.endLng, routing_state)
 
         scenarios = {"shortest": "length", "safety": "cost_safety", "rescue": "cost_speed"}
         results = {}
 
         for key, weight_attr in scenarios.items():
             try:
-                path = nx.shortest_path(G, source=start_node, target=end_node, weight=weight_attr)
+                path = nx.shortest_path(routing_state.graph, source=start_node, target=end_node, weight=weight_attr)
                 
                 # Gọi helper trích xuất geometry bám đường thực tế
-                path_coords = get_path_coords(path)
+                path_coords = get_path_coords(path, routing_state)
                 
                 # Nối liên tiếp từ Marker A -> Lộ trình -> Marker B
                 coords = [[req.startLat, req.startLng]] + path_coords + [[req.endLat, req.endLng]]
