@@ -40,12 +40,32 @@ def daily_ai_pipeline():
     
     logging.info("KẾT THÚC CHU KỲ CẬP NHẬT")
 
+
+def get_interval_minutes():
+    """Trả về chu kỳ chạy thử nếu được bật rõ ràng qua môi trường."""
+    raw_interval = os.getenv("AI_PIPELINE_INTERVAL_MINUTES", "").strip()
+    if not raw_interval:
+        return None
+    try:
+        interval = int(raw_interval)
+        if interval < 1:
+            raise ValueError
+        return interval
+    except ValueError:
+        logging.warning(
+            "AI_PIPELINE_INTERVAL_MINUTES=%r không hợp lệ; bỏ qua lịch chạy theo phút.",
+            raw_interval,
+        )
+        return None
+
 def setup_schedule():
     # Lên lịch chạy vào một giờ cố định mỗi ngày (ví dụ: 06:00 sáng)
     schedule.every().day.at("06:00").do(daily_ai_pipeline)
-    
-    # [Tùy chọn] Nếu muốn test ngay, hãy mở comment dòng dưới để chạy mỗi 5 phút:
-    schedule.every(5).minutes.do(daily_ai_pipeline)
+
+    interval = get_interval_minutes()
+    if interval:
+        schedule.every(interval).minutes.do(daily_ai_pipeline)
+        logging.info("Đã bật chu kỳ AI theo phút: mỗi %s phút.", interval)
 
     logging.info("Hệ thống Scheduler đã khởi động. Đang chờ đến giờ ...")
 
