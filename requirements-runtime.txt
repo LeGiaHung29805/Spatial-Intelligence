@@ -8,6 +8,7 @@ scipy
 networkx
 osmnx
 requests
+schedule
 sqlalchemy
 psycopg2-binary
 scikit-learn==1.8.0
