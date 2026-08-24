@@ -11,9 +11,9 @@ import main_scheduler
 
 
 class SchedulerTests(unittest.TestCase):
-    def test_interval_is_disabled_by_default(self):
+    def test_interval_defaults_to_five_minutes(self):
         with patch.dict(os.environ, {}, clear=True):
-            self.assertIsNone(main_scheduler.get_interval_minutes())
+            self.assertEqual(5, main_scheduler.get_interval_minutes())
 
     def test_interval_requires_a_positive_integer(self):
         with patch.dict(os.environ, {"AI_PIPELINE_INTERVAL_MINUTES": "15"}, clear=True):

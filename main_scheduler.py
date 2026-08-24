@@ -42,8 +42,8 @@ def daily_ai_pipeline():
 
 
 def get_interval_minutes():
-    """Trả về chu kỳ chạy thử nếu được bật rõ ràng qua môi trường."""
-    raw_interval = os.getenv("AI_PIPELINE_INTERVAL_MINUTES", "").strip()
+    """Trả về chu kỳ pipeline; giữ mặc định 5 phút theo hành vi ban đầu của hệ thống."""
+    raw_interval = os.getenv("AI_PIPELINE_INTERVAL_MINUTES", "5").strip()
     if not raw_interval:
         return None
     try:
