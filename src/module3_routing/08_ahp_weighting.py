@@ -26,6 +26,15 @@ from src.CSDL.config.db_config import get_engine
 GRAPH_IN_PATH = PROJECT_ROOT / "models" / "baxat_local_graph.graphml" 
 GRAPH_OUT_PATH = PROJECT_ROOT / "models" / "baxat_mcdm_final.graphml"
 
+# Khi admin đổi AHP, cần tính lại trên topology đang được API phục vụ. Bản
+# baxat_local_graph là đầu vào legacy của bước 07, có thể cũ hoặc thiếu các
+# thuộc tính địa hình cần cho MCDM.
+GRAPH_SOURCE_PATHS = (GRAPH_OUT_PATH, GRAPH_IN_PATH)
+REQUIRED_EDGE_COLUMNS = {
+    'avg_slope', 'avg_elevation', 'length_m',
+    'road_capacity', 'is_bridge', 'community_report',
+}
+
 
 WEIGHT_COLUMNS = (
     'w_distance', 'w_flood', 'w_landslide',
@@ -99,12 +108,37 @@ def get_latest_ai_risks(engine) -> tuple:
     return 0.5, 0.5 # Mặc định lấy 50% nếu hệ thống Database gặp sự cố
 
 
+def load_compatible_graph():
+    """Nạp đồ thị đủ dữ liệu MCDM, ưu tiên graph hiện đang được phục vụ."""
+    for graph_path in GRAPH_SOURCE_PATHS:
+        if not graph_path.exists():
+            logger.warning("Không tìm thấy đồ thị nguồn: %s", graph_path)
+            continue
+
+        graph = ox.load_graphml(graph_path)
+        available_columns = {
+            column
+            for _, _, _, edge_data in graph.edges(data=True, keys=True)
+            for column in edge_data
+        }
+        missing_columns = REQUIRED_EDGE_COLUMNS - available_columns
+        if missing_columns:
+            logger.warning(
+                "Bỏ qua đồ thị %s vì thiếu thuộc tính MCDM: %s",
+                graph_path,
+                ", ".join(sorted(missing_columns)),
+            )
+            continue
+
+        logger.info("Dùng đồ thị MCDM nguồn: %s", graph_path)
+        return graph
+
+    logger.error("Không có đồ thị nguồn nào đủ thuộc tính cho MCDM.")
+    return None
+
+
 def apply_mcdm_to_enriched_graph() -> bool:
     logger.info("BƯỚC 08: TÍNH TOÁN CHI PHÍ MCDM TỐC ĐỘ CAO (ĐÃ TÍCH HỢP AHP)...")
-    
-    if not GRAPH_IN_PATH.exists(): 
-        logger.error("Không tìm thấy Đồ thị gốc! Vui lòng chạy Bước 07 trước.")
-        return False
 
     engine = get_engine()
     
@@ -113,7 +147,10 @@ def apply_mcdm_to_enriched_graph() -> bool:
     logger.info(f"Đã nhận rủi ro từ hệ thống AI: Ngập {f_risk*100}% | Sạt lở {l_risk*100}%")
 
     # ĐỌC ĐỒ THỊ VÀ CHUẨN BỊ PANDAS
-    G = ox.load_graphml(GRAPH_IN_PATH)
+    G = load_compatible_graph()
+    if G is None:
+        return False
+
     edges_list = []
     for u, v, k, data in G.edges(data=True, keys=True):
         data['u'], data['v'], data['key'] = u, v, k
@@ -143,6 +180,26 @@ def apply_mcdm_to_enriched_graph() -> bool:
 
     df['cost_safety'] = calc_cost(w_s)
     df['cost_speed'] = calc_cost(w_sp)
+
+    # Ghi graph mới vào file tạm trước. Nếu bước này lỗi, DB vẫn giữ chi phí
+    # cũ đang đồng bộ với graph đang được API phục vụ.
+    cost_dict_safety = df.set_index(['u', 'v', 'key'])['cost_safety'].to_dict()
+    cost_dict_speed = df.set_index(['u', 'v', 'key'])['cost_speed'].to_dict()
+    nx.set_edge_attributes(G, cost_dict_safety, 'cost_safety')
+    nx.set_edge_attributes(G, cost_dict_speed, 'cost_speed')
+
+    temporary_graph_path = GRAPH_OUT_PATH.with_name(
+        f"{GRAPH_OUT_PATH.stem}.rebuild.graphml"
+    )
+    try:
+        if temporary_graph_path.exists():
+            temporary_graph_path.unlink()
+        ox.save_graphml(G, temporary_graph_path)
+    except Exception as error:
+        logger.error("Không thể lưu đồ thị MCDM mới: %s", error)
+        if temporary_graph_path.exists():
+            temporary_graph_path.unlink()
+        return False
 
     # FAST-SYNC VÀO POSTGRESQL (BULK UPDATE)
     logger.info(f"Đang Fast-Sync {len(df)} cạnh đường vào CSDL...")
@@ -182,17 +239,19 @@ def apply_mcdm_to_enriched_graph() -> bool:
         # Cleanup dự phòng nếu có lỗi xảy ra
         with engine.begin() as conn:
             conn.execute(text("DROP TABLE IF EXISTS tmp_mcdm_costs;"))
+        if temporary_graph_path.exists():
+            temporary_graph_path.unlink()
         return False
 
-    # CẬP NHẬT LẠI GRAPHML
-    logger.info("Đang ghi đè chỉ số MCDM vào file Đồ thị...")
-    cost_dict_safety = df.set_index(['u', 'v', 'key'])['cost_safety'].to_dict()
-    cost_dict_speed = df.set_index(['u', 'v', 'key'])['cost_speed'].to_dict()
-    
-    nx.set_edge_attributes(G, cost_dict_safety, 'cost_safety')
-    nx.set_edge_attributes(G, cost_dict_speed, 'cost_speed')
-    
-    ox.save_graphml(G, GRAPH_OUT_PATH)
+    # Chỉ thay thế graph đang phục vụ sau khi graph mới và dữ liệu DB đều ổn.
+    try:
+        temporary_graph_path.replace(GRAPH_OUT_PATH)
+    except Exception as error:
+        logger.error("Không thể kích hoạt đồ thị MCDM mới: %s", error)
+        if temporary_graph_path.exists():
+            temporary_graph_path.unlink()
+        return False
+
     logger.info(f"HOÀN TẤT BƯỚC 08! File đồ thị MCDM cuối cùng sẵn sàng tại: {GRAPH_OUT_PATH}")
     return True
 

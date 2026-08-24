@@ -1,6 +1,10 @@
 import importlib.util
 from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
+
+import networkx as nx
 
 
 MODULE_PATH = Path(__file__).parents[1] / "src" / "module3_routing" / "08_ahp_weighting.py"
@@ -60,6 +64,44 @@ class AhpWeightingTests(unittest.TestCase):
 
         self.assertEqual(set(ahp_weighting.WEIGHT_COLUMNS), set(weights))
         self.assertAlmostEqual(1.0, sum(weights.values()), places=6)
+
+
+class RoutingGraphSourceTests(unittest.TestCase):
+    @staticmethod
+    def _graph_with(columns):
+        graph = nx.MultiDiGraph()
+        graph.add_edge(1, 2, key=0, **{column: 1 for column in columns})
+        return graph
+
+    def test_prefers_current_graph_when_it_has_mcdm_schema(self):
+        current_graph = self._graph_with(ahp_weighting.REQUIRED_EDGE_COLUMNS)
+        legacy_graph = self._graph_with(set())
+
+        with TemporaryDirectory() as temporary_directory:
+            current_path = Path(temporary_directory) / "current.graphml"
+            legacy_path = Path(temporary_directory) / "legacy.graphml"
+            current_path.touch()
+            legacy_path.touch()
+
+            with patch.object(ahp_weighting, "GRAPH_SOURCE_PATHS", (current_path, legacy_path)), \
+                 patch.object(ahp_weighting.ox, "load_graphml", side_effect=[current_graph, legacy_graph]) as load_graph:
+                selected = ahp_weighting.load_compatible_graph()
+
+        self.assertIs(selected, current_graph)
+        load_graph.assert_called_once_with(current_path)
+
+    def test_rejects_graphs_missing_required_mcdm_attributes(self):
+        incomplete_graph = self._graph_with({"length_m"})
+
+        with TemporaryDirectory() as temporary_directory:
+            current_path = Path(temporary_directory) / "current.graphml"
+            current_path.touch()
+
+            with patch.object(ahp_weighting, "GRAPH_SOURCE_PATHS", (current_path,)), \
+                 patch.object(ahp_weighting.ox, "load_graphml", return_value=incomplete_graph):
+                selected = ahp_weighting.load_compatible_graph()
+
+        self.assertIsNone(selected)
 
 
 if __name__ == "__main__":
