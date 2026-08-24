@@ -1,21 +1,31 @@
 import requests
 import logging
+import os
 
 # Cấu hình logging
 logger = logging.getLogger(__name__)
 
-SPRING_BOOT_URL = "http://localhost:8080/api/v1"
+SPRING_BOOT_URL = os.getenv("SPRING_BOOT_URL", "http://localhost:8080/api/v1").rstrip("/")
+INTERNAL_API_TOKEN = os.getenv("INTERNAL_API_TOKEN", "")
 
 def trigger_heatmap_update() -> bool:
     """
     Client gọi API nội bộ của Spring Boot để yêu cầu phát sóng WebSocket bản đồ nhiệt.
     """
+    if not INTERNAL_API_TOKEN:
+        logger.error("[Spring Boot Client] INTERNAL_API_TOKEN chưa được cấu hình; từ chối gửi broadcast.")
+        return False
+
     endpoint = f"{SPRING_BOOT_URL}/map/internal/trigger-broadcast"
     logger.info(f"[Spring Boot Client] Đang gửi lệnh tới: {endpoint}")
     
     try:
         # Timeout 5s để Python không bị "treo" nếu Spring Boot đang tắt
-        res = requests.post(endpoint, timeout=5)
+        res = requests.post(
+            endpoint,
+            headers={"X-Internal-Api-Token": INTERNAL_API_TOKEN},
+            timeout=5,
+        )
         
         if res.status_code == 200:
             logger.info("[Spring Boot Client] Thành công! Bản đồ Web đang được cập nhật Real-time.")
