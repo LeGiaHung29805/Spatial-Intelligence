@@ -263,18 +263,42 @@ def find_safe_shelter(req: ShelterRequest):
             current_flood_level = float(system_state.active_flood_level) if system_state else 0.0
 
             query = text("""
-                SELECT DISTINCT ON (sh.id)
-                    sh.id, sh.name, sh.latitude, sh.longitude, 
+                SELECT
+                    sh.id, sh.name, sh.latitude, sh.longitude,
                     sh.max_capacity, sh.current_occupancy
                 FROM batxat_safe_havens sh
-                JOIN LATERAL simulate_flood_risk(:f_level) sim ON ST_DWithin(sh.geom, sim.geom, 0.0001)
-                JOIN LATERAL get_combined_landslide_risk() ls ON ST_DWithin(sh.geom, ls.geom, 0.0001)
-                WHERE sh.is_accessible = TRUE 
+                WHERE sh.is_accessible = TRUE
                   AND sh.current_occupancy < sh.max_capacity
-                  AND sim.flood_depth = 0 
-                  AND sim.risk_status NOT LIKE '%Nguy cơ Cao%'
-                  AND sim.risk_status NOT LIKE '%Nguy cơ Rất cao%'
-                  AND ls.risk_severity NOT IN ('Rất Cao (Nguy cấp)', 'Cao')
+                  AND EXISTS (
+                      SELECT 1
+                      FROM batxat_buildings flood_b
+                      WHERE ST_DWithin(sh.geom, flood_b.geom, 0.0001)
+                        AND GREATEST(
+                            0,
+                            CAST(:f_level AS DOUBLE PRECISION) - flood_b.elevation_z
+                        ) = 0
+                        AND (
+                            flood_b.dist_to_water IS NULL
+                            OR flood_b.dist_to_water >= 50
+                        )
+                  )
+                  AND EXISTS (
+                      SELECT 1
+                      FROM batxat_buildings slide_b
+                      WHERE ST_DWithin(sh.geom, slide_b.geom, 0.0001)
+                        AND slide_b.landslide_prob IS NOT NULL
+                        AND (
+                            (slide_b.landslide_prob * 0.7)
+                            + (
+                                CASE
+                                    WHEN slide_b.dist_to_water < 20 THEN 1.0
+                                    WHEN slide_b.dist_to_water < 50 THEN 0.6
+                                    WHEN slide_b.dist_to_water < 100 THEN 0.3
+                                    ELSE 0.0
+                                END * 0.3
+                            )
+                        ) < 0.55
+                  )
             """)
             
             result = conn.execute(query, {"f_level": current_flood_level})
@@ -287,44 +311,49 @@ def find_safe_shelter(req: ShelterRequest):
         if not shelters:
             return JSONResponse(status_code=404, content={"status": "fail", "message": "Không có điểm sơ tán an toàn."})
 
-        raw_options = []
+        # Xếp hạng mọi điểm bằng một lần Dijkstra. Trước đây mỗi shelter chạy
+        # shortest_path_length và shortest_path riêng, gây hàng nghìn lượt duyệt graph.
+        distances = nx.single_source_dijkstra_path_length(
+            routing_state.graph,
+            source=start_node,
+            weight=weight_attr,
+        )
+        ranked_shelters = []
         for shelter in shelters:
             end_node = find_nearest_node(shelter['lat'], shelter['lng'], routing_state)
+            route_cost = distances.get(end_node)
+            if route_cost is not None:
+                ranked_shelters.append((route_cost, shelter, end_node))
+
+        ranked_shelters.sort(key=lambda item: item[0])
+        top_3 = []
+        for route_cost, shelter, end_node in ranked_shelters[:3]:
             if start_node == end_node:
-                raw_options.append({
-                    "destination": shelter, "route_coordinates": [[start_lat, start_lng]], "cost_value": 0
-                })
-                continue
-
-            try:
-                route_cost = nx.shortest_path_length(routing_state.graph, source=start_node, target=end_node, weight=weight_attr)
-                best_route_nodes = nx.shortest_path(routing_state.graph, source=start_node, target=end_node, weight=weight_attr)
-                
-                # Trích xuất geometry bám đường cong mềm mại
+                route_coordinates = [[start_lat, start_lng]]
+            else:
+                best_route_nodes = nx.shortest_path(
+                    routing_state.graph,
+                    source=start_node,
+                    target=end_node,
+                    weight=weight_attr,
+                )
                 path_coords = get_path_coords(best_route_nodes, routing_state)
-                # Nối liền mạch từ vị trí GPS người dùng
-                route_coordinates = [[start_lat, start_lng]] + path_coords + [[shelter['lat'], shelter['lng']]]
+                route_coordinates = (
+                    [[start_lat, start_lng]]
+                    + path_coords
+                    + [[shelter['lat'], shelter['lng']]]
+                )
 
-                raw_options.append({
-                    "destination": {
-                        "id": shelter['id'], "name": shelter['name'], "lat": shelter['lat'], "lng": shelter['lng'],
-                        "available_capacity": shelter['max_capacity'] - shelter['current_occupancy']
-                    },
-                    "route_coordinates": route_coordinates,
-                    "cost_value": round(route_cost, 2)
-                })
-            except nx.NetworkXNoPath:
-                continue
+            top_3.append({
+                "destination": {
+                    "id": shelter['id'], "name": shelter['name'],
+                    "lat": shelter['lat'], "lng": shelter['lng'],
+                    "available_capacity": shelter['max_capacity'] - shelter['current_occupancy'],
+                },
+                "route_coordinates": route_coordinates,
+                "cost_value": round(route_cost, 2),
+            })
 
-        raw_options.sort(key=lambda x: x['cost_value'])
-        unique_options = []
-        seen_ids = set()
-        for opt in raw_options:
-            if opt['destination']['id'] not in seen_ids:
-                seen_ids.add(opt['destination']['id'])
-                unique_options.append(opt)
-
-        top_3 = unique_options[:3]
         return {"status": "success", "message": f"Tìm thấy {len(top_3)} điểm sơ tán.", "options": top_3}
     except Exception as e:
         logger.error(f"Lỗi find-safe-shelter: {e}")
